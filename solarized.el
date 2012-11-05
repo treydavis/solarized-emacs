@@ -43,800 +43,863 @@
 ;;
 ;;; Code
 
-(defun create-solarized-theme (variant theme-name &optional childtheme)
-  (let* ((class '((class color) (min-colors 89)))
-         ;; Solarized palette
-         (base03    "#002b36")
-         (base02    "#073642")
-         ;; emphasized content
-         (base01    "#586e75")
-         ;; primary content
-         (base00    "#657b83")
-         (base0     "#839496")
-         ;; comments
-         (base1     "#93a1a1")
-         ;; background highlight light
-         (base2     "#eee8d5")
-         ;; background light
-         (base3     "#fdf6e3")
 
-         ;; Solarized accented colors
-         (yellow    "#b58900")
-         (orange    "#cb4b16")
-         (red       "#dc322f")
-         (magenta   "#d33682")
-         (violet    "#6c71c4")
-         (blue      "#268bd2")
-         (cyan      "#2aa198")
-         (green     "#859900")
 
-         ;; Darker and lighter accented colors
-         ;; Only use these in exceptional circumstances!
-         (yellow-d  "#7B6000")
-         (yellow-l  "#DEB542")
-         (orange-d  "#8B2C02")
-         (orange-l  "#F2804F")
-         (red-d     "#990A1B")
-         (red-l     "#FF6E64")
-         (magenta-d "#93115C")
-         (magenta-l "#F771AC")
-         (violet-d  "#3F4D91")
-         (violet-l  "#9EA0E5")
-         (blue-d    "#00629D")
-         (blue-l    "#69B7F0")
-         (cyan-d    "#00736F")
-         (cyan-l    "#69CABF")
-         (green-d   "#546E00")
-         (green-l   "#B4C342")
+;; experimental branch supporting terminals with different capabilites at once (emacsclient)
+;; - docs
+;; - organize everything
+;; - remove old stuff
+;; - child themes
+;; - theme custom vars
+;; - hc/lc colors
 
-         ;; Light/Dark adaptive solarized colors
-         (solarized-fg (if (eq variant 'light) base00 base0))
-         (solarized-bg (if (eq variant 'light) base3 base03))
-         (solarized-hl (if (eq variant 'light) base2 base02))
-         (solarized-emph (if (eq variant 'light) base01 base1))
-         (solarized-comments (if (eq variant 'light) base1 base01))
 
-         ;; Light/Dark adaptive higher/lower contrast accented colors
-         ;; Only use these in exceptional cirmumstances!
-         (yellow-hc (if (eq variant 'light) yellow-d yellow-l))
-         (yellow-lc (if (eq variant 'light) yellow-l yellow-d))
-         (orange-hc (if (eq variant 'light) orange-d orange-l))
-         (orange-lc (if (eq variant 'light) orange-l orange-d))
-         (red-hc (if (eq variant 'light) red-d red-l))
-         (red-lc (if (eq variant 'light) red-l red-d))
-         (magenta-hc (if (eq variant 'light) magenta-d magenta-l))
-         (magenta-lc (if (eq variant 'light) magenta-l magenta-d))
-         (violet-hc (if (eq variant 'light) violet-d violet-l))
-         (violet-lc (if (eq variant 'light) violet-l violet-d))
-         (blue-hc (if (eq variant 'light) blue-d blue-l))
-         (blue-lc (if (eq variant 'light) blue-l blue-d))
-         (cyan-hc (if (eq variant 'light) cyan-d cyan-l))
-         (cyan-lc (if (eq variant 'light) cyan-l cyan-d))
-         (green-hc (if (eq variant 'light) green-d green-l))
-         (green-lc (if (eq variant 'light) green-l green-d)))
-    (custom-theme-set-faces
-     theme-name
-     '(button ((t (:underline t))))
 
-     ;; basic coloring
-     `(default ((,class (:foreground ,solarized-fg :background ,solarized-bg))))
-     `(shadow ((,class (:foreground ,solarized-comments))))
-     `(match ((,class (:background ,solarized-hl :foreground ,solarized-emph :weight bold))))
-     `(cursor ((,class (:foreground ,solarized-bg :background ,solarized-fg :inverse-video t))))
-     `(escape-glyph-face ((,class (:foreground ,red))))
-     `(fringe ((,class (:foreground ,solarized-fg :background ,solarized-hl))))
-     `(header-line ((,class (:foreground ,yellow
-                                         :background ,solarized-hl
-                                         :box (:line-width -1 :style released-button)))))
-     `(highlight ((,class (:background ,solarized-hl))))
-     `(link ((,class (:foreground ,yellow :underline t :weight bold))))
-     `(link-visited ((,class (:foreground ,yellow :underline t :weight normal))))
-     `(success ((,class (:foreground ,green ))))
-     `(warning ((,class (:foreground ,yellow ))))
-     `(error ((,class (:foreground ,orange))))
-     `(lazy-highlight ((,class (:foreground ,solarized-emph :background ,solarized-hl :bold t))))
-     `(escape-glyph ((,class (:foreground ,violet))))
+(defcustom solarized-broken-srgb (if (and (eq system-type 'darwin)
+                                          (eq window-system 'ns))
+                                     t
+                                   nil)
+  "Emacs bug #8402 results in incorrect color handling on Macs. If this is t
+\(the default on Macs), Solarized works around it with alternative colors.
+However, these colors are not totally portable, so you may be able to edit
+the \"Gen RGB\" column in solarized-definitions.el to improve them further."
+  :type 'boolean
+  :group 'solarized)
 
-     ;; compilation
-     `(compilation-column-face ((,class (:foreground ,yellow))))
-     `(compilation-enter-directory-face ((,class (:foreground ,green))))
-     `(compilation-error-face ((,class (:foreground ,red :weight bold :underline t))))
-     `(compilation-face ((,class (:foreground ,solarized-fg))))
-     `(compilation-info-face ((,class (:foreground ,blue))))
-     `(compilation-info ((,class (:foreground ,green :underline t))))
-     `(compilation-leave-directory-face ((,class (:foreground ,green))))
-     `(compilation-line-face ((,class (:foreground ,yellow))))
-     `(compilation-line-number ((,class (:foreground ,yellow))))
-     `(compilation-message-face ((,class (:foreground ,blue))))
-     `(compilation-warning-face ((,class (:foreground ,yellow :weight bold :underline t))))
+;; FIXME: The Generic RGB colors will actually vary from device to device, but
+;;        hopefully these are closer to the intended colors than the sRGB values
+;;        that Emacs seems to dislike
+(defvar solarized-colors           ; ANSI(Solarized terminal)
+  ;; name     sRGB      Gen RGB   256       16              8
+  '((base03  "#002b36" "#042028" "#1c1c1c" "brightblack"   "black")
+    (base02  "#073642" "#0a2832" "#262626" "black"         "black")
+    (base01  "#586e75" "#465a61" "#585858" "brightgreen"   "green")
+    (base00  "#657b83" "#52676f" "#626262" "brightyellow"  "yellow")
+    (base0   "#839496" "#708183" "#808080" "brightblue"    "blue")
+    (base1   "#93a1a1" "#81908f" "#8a8a8a" "brightcyan"    "cyan")
+    (base2   "#eee8d5" "#e9e2cb" "#e4e4e4" "white"         "white")
+    (base3   "#fdf6e3" "#fcf4dc" "#ffffd7" "brightwhite"   "white")
+    (yellow  "#b58900" "#a57705" "#af8700" "yellow"        "yellow")
+    (orange  "#cb4b16" "#bd3612" "#d75f00" "brightred"     "red")
+    (red     "#dc322f" "#c60007" "#d70000" "red"           "red")
+    (magenta "#d33682" "#c61b6e" "#af005f" "magenta"       "magenta")
+    (violet  "#6c71c4" "#5859b7" "#5f5faf" "brightmagenta" "magenta")
+    (blue    "#268bd2" "#2075c7" "#0087ff" "blue"          "blue")
+    (cyan    "#2aa198" "#259185" "#00afaf" "cyan"          "cyan")
+    (green   "#859900" "#728a05" "#5f8700" "green"         "green")
+    (yellow-lc  "red" "#7B6000" "red" "red" "red")
+    (yellow-hc "red" "#DEB542" "red" "red" "red")
+    (orange-lc  "red" "#8B2C02" "red" "red" "red")
+    (orange-hc "red" "#F2804F" "red" "red" "red")
+    (red-lc     "red" "#990A1B" "red" "red" "red")
+    (red-hc    "red" "#FF6E64" "red" "red" "red")
+    (magenta-lc "red" "#93115C" "red" "red" "red")
+    (magenta-hc "red" "#F771AC" "red" "red" "red")
+    (violet-lc  "red" "#3F4D91" "red" "red" "red")
+    (violet-hc "red" "#9EA0E5" "red" "red" "red")
+    (blue-lc    "red" "#00629D" "red" "red" "red")
+    (blue-hc   "red" "#69B7F0" "red" "red" "red")
+    (cyan-lc    "red" "#00736F" "red" "red" "red")
+    (cyan-hc   "red" "#69CABF" "red" "red" "red")
+    (green-lc   "red" "#546E00" "red" "red" "red")
+    (green-hc  "red"  "#B4C342" "red" "red" "red")
 
-     ;; cua
-     `(cua-global-mark ((,class (:background ,yellow :foreground ,solarized-bg))))
-     `(cua-rectangle ((,class (:inherit region :background ,magenta :foreground ,solarized-bg))))
-     `(cua-rectangle-noselect ((,class (:inherit region :background ,solarized-hl
-                                                 :foreground ,solarized-comments))))
+    )
+  "This is a table of all the colors used by the Solarized color theme. Each
+   column is a different set, one of which will be chosen based on term
+   capabilities, etc.")
 
-     ;; diary
-     `(diary ((,class (:foreground ,yellow))))
 
-     ;; dired
-     `(dired-directory ((,class (:foreground ,blue :weight normal))))
-     `(dired-flagged ((,class (:foreground ,red))))
-     `(dired-header ((,class (:foreground ,solarized-bg :background ,blue))))
-     `(dired-ignored ((,class (:inherit shadow))))
-     `(dired-mark ((,class (:foreground ,yellow :weight bold))))
-     `(dired-marked ((,class (:foreground ,magenta :weight bold))))
-     `(dired-perm-write ((,class (:foreground ,solarized-fg :underline t))))
-     `(dired-symlink ((,class (:foreground ,cyan :weight normal :slant italic))))
-     `(dired-warning ((,class (:foreground ,orange :underline t))))
 
-     ;; grep
-     `(grep-context-face ((,class (:foreground ,solarized-fg))))
-     `(grep-error-face ((,class (:foreground ,red :weight bold :underline t))))
-     `(grep-hit-face ((,class (:foreground ,blue))))
-     `(grep-match-face ((,class (:foreground ,orange :weight bold))))
 
-     ;; faces used by isearch
-     `(isearch ((,class (:foreground ,yellow :background ,solarized-hl :bold t))))
-     `(isearch-fail ((,class (:foreground ,red :background ,solarized-bg :bold t))))
+(defun solarized-face-for-index (facespec index)
+  "Creates a face from facespec where the colors use the names of
+  the `solarized-colors'."
+  (let ((new-fontspec (copy-list facespec)))
+    (dolist (property '(:foreground :background :color))
+      (when (plist-get new-fontspec property)
+       (plist-put new-fontspec property
+                  (nth index (assoc (plist-get new-fontspec property)
+                                    solarized-colors)))))
+    (when (plist-get new-fontspec :box)
+      (plist-put new-fontspec :box (solarized-face-for-index
+                                    (plist-get new-fontspec :box) index)))
+    new-fontspec))
 
-     ;; misc faces
-     `(menu ((,class (:foreground ,solarized-fg :background ,solarized-bg))))
-     `(minibuffer-prompt ((,class (:foreground ,solarized-emph))))
-     `(mode-line
-       ((,class (:foreground ,solarized-fg
-                             :background ,solarized-hl
-                             :box (:line-width -1 :style released-button)))))
-     `(mode-line-buffer-id ((,class (:foreground ,solarized-emph :weight bold))))
-     `(mode-line-inactive
-       ((,class (:foreground ,solarized-fg
-                             :background ,solarized-bg
-                             :box (:line-width -1 :style released-button)))))
-     `(region ((,class (:foreground ,solarized-bg :background ,solarized-emph))))
-     `(secondary-selection ((,class (:background ,solarized-bg))))
-     `(trailing-whitespace ((,class (:background ,red))))
-     `(vertical-border ((,class (:foreground ,solarized-fg))))
+(defun solarized-flip (facespec)
+  "Convert a facespec to its lightened or darkened counterpart"
+  (let* ((reversing-alist '((base03 . base3) (base02 . base2) (base01 . base1)
+                            (base00 . base0) (base0 . base00) (base1 . base01)
+                            (base2 . base02) (base3 . base03)
+                            (yellow-hc . yellow-lc)
+                            (orange-hc . orange-lc)
+                            (red-hc . red-lc)
+                            (magenta-hc . magenta-lc)
+                            (violet-hc . violet-lc)
+                            (blue-hc . blue-lc)
+                            (cyan-hc . cyan-lc)
+                            (green-hc . green-lc)
+                            (yellow-lc . yellow-hc)
+                            (orange-lc . orange-hc)
+                            (red-lc . red-hc)
+                            (magenta-lc . magenta-hc)
+                            (violet-lc . violet-hc)
+                            (blue-lc . blue-hc)
+                            (cyan-lc . cyan-hc)
+                            (green-lc . green-hc))))
 
-     ;; font lock
-     `(font-lock-builtin-face ((,class (:foreground ,blue :slant italic))))
-     `(font-lock-comment-delimiter-face ((,class (:foreground ,solarized-comments))))
-     `(font-lock-comment-face ((,class (:foreground ,solarized-comments))))
-     `(font-lock-constant-face ((,class (:foreground ,blue :weight bold))))
-     `(font-lock-doc-face ((,class (:foreground ,cyan :slant italic))))
-     `(font-lock-doc-string-face ((,class (:foreground ,blue))))
-     `(font-lock-function-name-face ((,class (:foreground ,blue))))
-     `(font-lock-keyword-face ((,class (:foreground ,green :weight bold))))
-     `(font-lock-negation-char-face ((,class (:foreground ,solarized-fg))))
-     `(font-lock-preprocessor-face ((,class (:foreground ,blue))))
-     `(font-lock-string-face ((,class (:foreground ,cyan))))
-     `(font-lock-type-face ((,class (:foreground ,yellow))))
-     `(font-lock-variable-name-face ((,class (:foreground ,blue))))
-     `(font-lock-warning-face ((,class (:foreground ,orange :weight bold :underline t))))
+    (mapcar (lambda (term) (cond ((listp term) (solarized-flip term))
+                            ((assoc term reversing-alist)
+                             (cdr (assoc term reversing-alist)))
+                            (t term))) facespec)))
 
-     `(c-annotation-face ((,class (:inherit font-lock-constant-face))))
+(defun solarized-faces (facespecs mode)
+  (mapcar (lambda (facespec-with-name)
+            (let* ((name (car facespec-with-name))
+                   (facespec (funcall
+                              (if (eq mode 'dark) 'solarized-flip 'identity)
+                              (second facespec-with-name)))
+                   (flipped-facespec (solarized-flip facespec))
+                   (facespec-tty-256 (solarized-face-for-index facespec 3))
+                   (facespec-tty-term16 (solarized-face-for-index facespec 4))
+                   (facespec-tty-term8 (solarized-face-for-index facespec 5))
+                   (facespec-default (solarized-face-for-index facespec
+                                                               (if solarized-broken-srgb 2 1))))
+              `(,name
+                ((((min-colors 257)) ,facespec-default)
+                 (((min-colors 256)) ,facespec-tty-256)
+                 (((min-colors 16)) ,facespec-tty-term16)
+                 (((min-colors 8)) ,facespec-tty-term8)
+                 ;; We should rarely if ever fall to the default.  If
+                 ;; so, let's set it to the default light spec and
+                 ;; hope for the best.
+                 (t ,facespec-default))))) facespecs))
 
-     ;;; external
+(defun solarized-color-definitions (mode)
+  (list
+   (append
+    (solarized-faces
+     `(
+       (button  (:underline t))
 
-     ;; ace-jump-mode
-     `(ace-jump-face-background
-       ((,class (:foreground ,solarized-comments :background ,solarized-bg :inverse-video nil))))
-     `(ace-jump-face-foreground
-       ((,class (:foreground ,red :background ,solarized-bg :inverse-video nil))))
+       ;; basic coloring
+       (default  (:foreground base00 :background base3))
+       (shadow  (:foreground base1))
+       (match  (:background base2 :foreground base01 :weight bold))
+       (cursor  (:foreground base3 :background base00 :inverse-video t))
+       (escape-glyph-face  (:foreground red))
+       (fringe  (:foreground base00 :background base2))
+       (header-line  (:foreground yellow
+                                  :background base2
+                                  :box (:line-width -1 :style released-button)))
+       (highlight  (:background base2))
+       (link  (:foreground yellow :underline t :weight bold))
+       (link-visited  (:foreground yellow :underline t :weight normal))
+       (success  (:foreground green ))
+       (warning  (:foreground yellow ))
+       (error  (:foreground orange))
+       (lazy-highlight  (:foreground base01 :background base2 :bold t))
+       (escape-glyph  (:foreground violet))
 
-     ;; auto highlight symbol
-     `(ahs-definition-face ((,class (:foreground ,solarized-bg :background ,blue :underline t))))
-     `(ahs-edit-mode-face ((,class (:foreground ,solarized-bg :background ,yellow))))
-     `(ahs-face ((,class (:foreground ,solarized-bg :background ,blue))))
-     `(ahs-plugin-bod-face ((,class (:foreground ,solarized-bg :background ,blue))))
-     `(ahs-plugin-defalt-face ((,class (:foreground ,solarized-bg :background ,cyan))))
-     `(ahs-plugin-whole-buffer-face ((,class (:foreground ,solarized-bg :background ,green))))
-     `(ahs-warning-face ((,class (:foreground ,red :weight bold))))
+       ;; compilation
+       (compilation-column-face  (:foreground yellow))
+       (compilation-enter-directory-face  (:foreground green))
+       (compilation-error-face  (:foreground red :weight bold :underline t))
+       (compilation-face  (:foreground base00))
+       (compilation-info-face  (:foreground blue))
+       (compilation-info  (:foreground green :underline t))
+       (compilation-leave-directory-face  (:foreground green))
+       (compilation-line-face  (:foreground yellow))
+       (compilation-line-number  (:foreground yellow))
+       (compilation-message-face  (:foreground blue))
+       (compilation-warning-face  (:foreground yellow :weight bold :underline t))
 
-     ;; bm
-     `(bm-face ((,class (:background ,yellow-lc :foreground ,solarized-bg))))
-     `(bm-fringe-face ((,class (:background ,yellow-lc :foreground ,solarized-bg))))
-     `(bm-fringe-persistent-face ((,class (:background ,green-lc :foreground ,solarized-bg))))
-     `(bm-persistent-face ((,class (:background ,green-lc :foreground ,solarized-bg))))
+       ;; cua
+       (cua-global-mark  (:background yellow :foreground base3))
+       (cua-rectangle  (:inherit region :background magenta :foreground base3))
+       (cua-rectangle-noselect  (:inherit region :background base2
+                                          :foreground base1))
 
-     ;; custom
-     `(custom-variable-tag ((,class (:foreground ,cyan))))
-     `(custom-comment-tag ((,class (:foreground ,solarized-comments))))
-     `(custom-group-tag ((,class (:foreground ,blue))))
-     `(custom-state ((,class (:foreground ,green))))
+       ;; diary
+       (diary  (:foreground yellow))
 
-     ;; diff
-     `(diff-added ((,class (:foreground ,green))))
-     `(diff-changed ((,class (:foreground ,yellow))))
-     `(diff-removed ((,class (:foreground ,red))))
-     `(diff-header ((,class (:background ,solarized-bg))))
-     `(diff-file-header
-       ((,class (:background ,solarized-bg :foreground ,solarized-fg :weight bold))))
+       ;; dired
+       (dired-directory  (:foreground blue :weight normal))
+       (dired-flagged  (:foreground red))
+       (dired-header  (:foreground base3 :background blue))
+       (dired-ignored  (:inherit shadow))
+       (dired-mark  (:foreground yellow :weight bold))
+       (dired-marked  (:foreground magenta :weight bold))
+       (dired-perm-write  (:foreground base00 :underline t))
+       (dired-symlink  (:foreground cyan :weight normal :slant italic))
+       (dired-warning  (:foreground orange :underline t))
 
-     ;; eshell
-     `(eshell-prompt ((,class (:foreground ,yellow :weight bold))))
-     `(eshell-ls-archive ((,class (:foreground ,red :weight bold))))
-     `(eshell-ls-backup ((,class (:inherit font-lock-comment))))
-     `(eshell-ls-clutter ((,class (:inherit font-lock-comment))))
-     `(eshell-ls-directory ((,class (:foreground ,blue :weight bold))))
-     `(eshell-ls-executable ((,class (:foreground ,red :weight bold))))
-     `(eshell-ls-unreadable ((,class (:foreground ,solarized-fg))))
-     `(eshell-ls-missing ((,class (:inherit font-lock-warning))))
-     `(eshell-ls-product ((,class (:inherit font-lock-doc))))
-     `(eshell-ls-special ((,class (:foreground ,yellow :weight bold))))
-     `(eshell-ls-symlink ((,class (:foreground ,cyan :weight bold))))
+       ;; grep
+       (grep-context-face  (:foreground base00))
+       (grep-error-face  (:foreground red :weight bold :underline t))
+       (grep-hit-face  (:foreground blue))
+       (grep-match-face  (:foreground orange :weight bold))
 
-     ;; flymake
-     `(flymake-errline
-       ((,class (:foreground ,red-hc :background ,red-lc :weight bold :underline t))))
-     `(flymake-infoline ((,class (:foreground ,green-hc :background ,green-lc))))
-     `(flymake-warnline
-       ((,class (:foreground ,yellow-hc :background ,yellow-lc :weight bold :underline t))))
+       ;; faces used by isearch
+       (isearch  (:foreground yellow :background base2 :bold t))
+       (isearch-fail  (:foreground red :background base3 :bold t))
 
-     ;; flyspell
-     `(flyspell-duplicate ((,class (:foreground ,yellow :weight bold :underline t))))
-     `(flyspell-incorrect ((,class (:foreground ,red :weight bold :underline t))))
+       ;; misc faces
+       (menu  (:foreground base00 :background base3))
+       (minibuffer-prompt  (:foreground base01))
+       (mode-line
+        (:foreground base00
+                     :background base2
+                     :box (:line-width -1 :style released-button)))
+       (mode-line-buffer-id  (:foreground base01 :weight bold))
+       (mode-line-inactive
+        (:foreground base00
+                     :background base3
+                     :box (:line-width -1 :style released-button)))
+       (region  (:foreground base3 :background base01))
+       (secondary-selection  (:background base3))
+       (trailing-whitespace  (:background red))
+       (vertical-border  (:foreground base00))
 
-     ;; erc
-     `(erc-action-face ((,class (:inherit erc-default-face))))
-     `(erc-bold-face ((,class (:weight bold))))
-     `(erc-current-nick-face ((,class (:foreground ,blue :weight bold))))
-     `(erc-dangerous-host-face ((,class (:inherit font-lock-warning))))
-     `(erc-default-face ((,class (:foreground ,solarized-fg))))
-     `(erc-direct-msg-face ((,class (:inherit erc-default))))
-     `(erc-error-face ((,class (:inherit font-lock-warning))))
-     `(erc-fool-face ((,class (:inherit erc-default))))
-     `(erc-highlight-face ((,class (:inherit hover-highlight))))
-     `(erc-input-face ((,class (:foreground ,yellow))))
-     `(erc-keyword-face ((,class (:foreground ,blue :weight bold))))
-     `(erc-nick-default-face ((,class (:foreground ,yellow :weight bold))))
-     `(erc-my-nick-face ((,class (:foreground ,red :weight bold))))
-     `(erc-nick-msg-face ((,class (:inherit erc-default))))
-     `(erc-notice-face ((,class (:foreground ,green))))
-     `(erc-pal-face ((,class (:foreground ,orange :weight bold))))
-     `(erc-prompt-face ((,class (:foreground ,orange :background ,solarized-bg :weight bold))))
-     `(erc-timestamp-face ((,class (:foreground ,green))))
-     `(erc-underline-face ((t (:underline t))))
+       ;; font lock
+       (font-lock-builtin-face  (:foreground blue :slant italic))
+       (font-lock-comment-delimiter-face  (:foreground base1))
+       (font-lock-comment-face  (:foreground base1))
+       (font-lock-constant-face  (:foreground blue :weight bold))
+       (font-lock-doc-face  (:foreground cyan :slant italic))
+       (font-lock-doc-string-face  (:foreground blue))
+       (font-lock-function-name-face  (:foreground blue))
+       (font-lock-keyword-face  (:foreground green :weight bold))
+       (font-lock-negation-char-face  (:foreground base00))
+       (font-lock-preprocessor-face  (:foreground blue))
+       (font-lock-string-face  (:foreground cyan))
+       (font-lock-type-face  (:foreground yellow))
+       (font-lock-variable-name-face  (:foreground blue))
+       (font-lock-warning-face  (:foreground orange :weight bold :underline t))
 
-     ;; gnus
-     `(gnus-group-mail-1-face ((,class (:weight bold :inherit gnus-group-mail-1-empty))))
-     `(gnus-group-mail-1-empty-face ((,class (:inherit gnus-group-news-1-empty))))
-     `(gnus-group-mail-2-face ((,class (:weight bold :inherit gnus-group-mail-2-empty))))
-     `(gnus-group-mail-2-empty-face ((,class (:inherit gnus-group-news-2-empty))))
-     `(gnus-group-mail-3-face ((,class (:weight bold :inherit gnus-group-mail-3-empty))))
-     `(gnus-group-mail-3-empty-face ((,class (:inherit gnus-group-news-3-empty))))
-     `(gnus-group-mail-4-face ((,class (:weight bold :inherit gnus-group-mail-4-empty))))
-     `(gnus-group-mail-4-empty-face ((,class (:inherit gnus-group-news-4-empty))))
-     `(gnus-group-mail-5-face ((,class (:weight bold :inherit gnus-group-mail-5-empty))))
-     `(gnus-group-mail-5-empty-face ((,class (:inherit gnus-group-news-5-empty))))
-     `(gnus-group-mail-6-face ((,class (:weight bold :inherit gnus-group-mail-6-empty))))
-     `(gnus-group-mail-6-empty-face ((,class (:inherit gnus-group-news-6-empty))))
-     `(gnus-group-mail-low-face ((,class (:weight bold :inherit gnus-group-mail-low-empty))))
-     `(gnus-group-mail-low-empty-face ((,class (:inherit gnus-group-news-low-empty))))
-     `(gnus-group-news-1-face ((,class (:weight bold :inherit gnus-group-news-1-empty))))
-     `(gnus-group-news-2-face ((,class (:weight bold :inherit gnus-group-news-2-empty))))
-     `(gnus-group-news-3-face ((,class (:weight bold :inherit gnus-group-news-3-empty))))
-     `(gnus-group-news-4-face ((,class (:weight bold :inherit gnus-group-news-4-empty))))
-     `(gnus-group-news-5-face ((,class (:weight bold :inherit gnus-group-news-5-empty))))
-     `(gnus-group-news-6-face ((,class (:weight bold :inherit gnus-group-news-6-empty))))
-     `(gnus-group-news-low-face ((,class (:weight bold :inherit gnus-group-news-low-empty))))
-     `(gnus-header-content-face ((,class (:inherit message-header-other))))
-     `(gnus-header-from-face ((,class (:inherit message-header-from))))
-     `(gnus-header-name-face ((,class (:inherit message-header-name))))
-     `(gnus-header-newsgroups-face ((,class (:inherit message-header-other))))
-     `(gnus-header-subject-face ((,class (:inherit message-header-subject))))
-     `(gnus-summary-cancelled-face ((,class (:foreground ,orange))))
-     `(gnus-summary-high-ancient-face ((,class (:foreground ,blue))))
-     `(gnus-summary-high-read-face ((,class (:foreground ,green :weight bold))))
-     `(gnus-summary-high-ticked-face ((,class (:foreground ,orange :weight bold))))
-     `(gnus-summary-high-unread-face ((,class (:foreground ,solarized-fg :weight bold))))
-     `(gnus-summary-low-ancient-face ((,class (:foreground ,blue))))
-     `(gnus-summary-low-read-face ((t (:foreground ,green))))
-     `(gnus-summary-low-ticked-face ((,class (:foreground ,orange :weight bold))))
-     `(gnus-summary-low-unread-face ((,class (:foreground ,solarized-fg))))
-     `(gnus-summary-normal-ancient-face ((,class (:foreground ,blue))))
-     `(gnus-summary-normal-read-face ((,class (:foreground ,green))))
-     `(gnus-summary-normal-ticked-face ((,class (:foreground ,orange :weight bold))))
-     `(gnus-summary-normal-unread-face ((,class (:foreground ,solarized-fg))))
-     `(gnus-summary-selected-face ((,class (:foreground ,yellow :weight bold))))
-     `(gnus-cite-1-face ((,class (:foreground ,blue))))
-     `(gnus-cite-10-face ((,class (:foreground ,yellow))))
-     `(gnus-cite-11-face ((,class (:foreground ,yellow))))
-     `(gnus-cite-2-face ((,class (:foreground ,blue))))
-     `(gnus-cite-3-face ((,class (:foreground ,blue))))
-     `(gnus-cite-4-face ((,class (:foreground ,green))))
-     `(gnus-cite-5-face ((,class (:foreground ,green))))
-     `(gnus-cite-6-face ((,class (:foreground ,green))))
-     `(gnus-cite-7-face ((,class (:foreground ,red))))
-     `(gnus-cite-8-face ((,class (:foreground ,red))))
-     `(gnus-cite-9-face ((,class (:foreground ,red))))
-     `(gnus-group-news-1-empty-face ((,class (:foreground ,yellow))))
-     `(gnus-group-news-2-empty-face ((,class (:foreground ,green))))
-     `(gnus-group-news-3-empty-face ((,class (:foreground ,green))))
-     `(gnus-group-news-4-empty-face ((,class (:foreground ,blue))))
-     `(gnus-group-news-5-empty-face ((,class (:foreground ,blue))))
-     `(gnus-group-news-6-empty-face ((,class (:foreground ,solarized-bg))))
-     `(gnus-group-news-low-empty-face ((,class (:foreground ,solarized-bg))))
-     `(gnus-signature-face ((,class (:foreground ,yellow))))
-     `(gnus-x-face ((,class (:background ,solarized-fg :foreground ,solarized-bg))))
+       (c-annotation-face  (:inherit font-lock-constant-face))
 
-     ;; helm (these probably needs tweaking)
-     `(helm-apt-deinstalled ((,class (:foreground ,solarized-comments))))
-     `(helm-apt-installed ((,class (:foreground ,green))))
-     `(helm-bookmark-directory ((,class (:inherit helm-ff-directory))))
-     `(helm-bookmark-file ((,class (:foreground ,solarized-fg))))
-     `(helm-bookmark-gnus ((,class (:foreground ,cyan))))
-     `(helm-bookmark-info ((,class (:foreground ,green))))
-     `(helm-bookmark-man ((,class (:foreground ,violet))))
-     `(helm-bookmark-w3m ((,class (:foreground ,yellow))))
-     `(helm-bookmarks-su ((,class (:foreground ,orange))))
-     `(helm-buffer-not-saved ((,class (:foreground ,orange))))
-     `(helm-buffer-saved-out ((,class (:foreground ,red :background ,solarized-bg
-                                                   :inverse-video t))))
-     `(helm-buffer-size ((,class (:foreground ,solarized-comments))))
-     `(helm-candidate-number ((,class (:background ,solarized-hl :foreground ,solarized-emph
-                                                   :bold t))))
-     `(helm-ff-directory ((,class (:background ,solarized-bg  :foreground ,blue))))
-     `(helm-ff-executable ((,class (:foreground ,green))))
-     `(helm-ff-file ((,class (:background ,solarized-bg :foreground ,solarized-fg))))
-     `(helm-ff-invalid-symlink ((,class (:background ,solarized-bg :foreground ,orange
-                                                     :slant italic))))
-     `(helm-ff-prefix ((,class (:background ,yellow :foreground ,solarized-bg))))
-     `(helm-ff-symlink ((,class (:foreground ,cyan))))
-     `(helm-grep-file ((,class (:foreground ,cyan :underline t))))
-     `(helm-grep-finish ((,class (:foreground ,green))))
-     `(helm-grep-lineno ((,class (:foreground ,orange))))
-     `(helm-grep-match ((,class (:inherit match))))
-     `(helm-grep-running ((,class (:foreground ,red))))
-     `(helm-header ((,class (:inherit header-line))))
-     `(helm-lisp-completion-info ((,class (:foreground ,solarized-fg))))
-     `(helm-lisp-show-completion ((,class (:foreground ,yellow  :background ,solarized-hl
-                                                       :bold t))))
-     `(helm-M-x-key ((,class (:foreground ,orange :underline t))))
-     `(helm-match ((,class (:inherit match))))
-     `(helm-selection ((,class (:background ,solarized-hl :underline t))))
-     `(helm-selection-line ((,class (:background ,solarized-hl :foreground ,solarized-emph
-                                                 :underline nil))))
-     `(helm-separator ((,class (:foreground ,red))))
-     `(helm-source-header ((,class (:background ,blue-lc :foreground ,solarized-bg
-                                                :underline nil))))
-     `(helm-time-zone-current ((,class (:foreground ,green))))
-     `(helm-time-zone-home ((,class (:foreground ,red))))
-     `(helm-visible-mark ((,class (:background ,solarized-bg :foreground ,magenta :bold t))))
+       ;; external
 
-     ;; hi-lock-mode
-     `(hi-yellow ((,class (:foreground ,yellow-lc :background ,yellow-hc))))
-     `(hi-pink ((,class (:foreground ,magenta-lc :background ,magenta-hc))))
-     `(hi-green ((,class (:foreground ,green-lc :background ,green-hc))))
-     `(hi-blue ((,class (:foreground ,blue-lc :background ,blue-hc))))
-     `(hi-black-b ((,class (:foreground ,solarized-emph :background ,solarized-bg :weight bold))))
-     `(hi-blue-b ((,class (:foreground ,blue-lc :weight bold))))
-     `(hi-green-b ((,class (:foreground ,green-lc :weight bold))))
-     `(hi-red-b ((,class (:foreground ,red :weight bold))))
-     `(hi-black-hb ((,class (:foreground ,solarized-emph :background ,solarized-bg :weight bold))))
+       ;; ace-jump-mode
+       (ace-jump-face-background
+        (:foreground base1 :background base3 :inverse-video nil))
+       (ace-jump-face-foreground
+        (:foreground red :background base3 :inverse-video nil))
 
-     ;; highlight-changes
-     `(highlight-changes ((,class (:foreground ,orange))))
-     `(highlight-changes-delete ((,class (:foreground ,red :underline t))))
+       ;; auto highlight symbol
+       (ahs-definition-face  (:foreground base3 :background blue :underline t))
+       (ahs-edit-mode-face  (:foreground base3 :background yellow))
+       (ahs-face  (:foreground base3 :background blue))
+       (ahs-plugin-bod-face  (:foreground base3 :background blue))
+       (ahs-plugin-defalt-face  (:foreground base3 :background cyan))
+       (ahs-plugin-whole-buffer-face  (:foreground base3 :background green))
+       (ahs-warning-face  (:foreground red :weight bold))
 
-     ;; hl-line-mode
-     `(hl-line ((,class (:background ,solarized-hl))))
-     `(hl-line-face ((,class (:background ,solarized-hl))))
+       ;; bm
+       (bm-face  (:background yellow-lc :foreground base3))
+       (bm-fringe-face  (:background yellow-lc :foreground base3))
+       (bm-fringe-persistent-face  (:background green-lc :foreground base3))
+       (bm-persistent-face  (:background green-lc :foreground base3))
 
-     ;; ido-mode
-     `(ido-first-match ((,class (:foreground ,green :weight bold))))
-     `(ido-only-match ((,class (:foreground ,solarized-bg :background ,green :weight bold))))
-     `(ido-subdir ((,class (:foreground ,blue))))
-     `(ido-incomplete-regexp ((,class (:foreground ,red :weight bold ))))
-     `(ido-indicator ((,class (:background ,red :foreground ,solarized-bg :width condensed))))
-     `(ido-virtual ((,class (:foreground ,cyan))))
+       ;; custom
+       (custom-variable-tag  (:foreground cyan))
+       (custom-comment-tag  (:foreground base1))
+       (custom-group-tag  (:foreground blue))
+       (custom-state  (:foreground green))
 
-     ;; linum-mode
-     `(linum ((,class (:foreground ,solarized-fg :background ,solarized-bg))))
+       ;; diff
+       (diff-added  (:foreground green))
+       (diff-changed  (:foreground yellow))
+       (diff-removed  (:foreground red))
+       (diff-header  (:background base3))
+       (diff-file-header
+        (:background base3 :foreground base00 :weight bold))
 
-     ;; magit
-     `(magit-section-title ((,class (:foreground ,yellow :weight bold))))
-     `(magit-branch ((,class (:foreground ,orange :weight bold))))
-     `(magit-item-highlight ((,class (:background ,solarized-hl))))
-     `(magit-log-graph ((,class (:foreground ,solarized-comments))))
-     `(magit-log-head-label-bisect-bad ((,class (:background ,red-hc :foreground ,red-lc :box 1))))
-     `(magit-log-head-label-bisect-good ((,class (:background ,green-hc :foreground ,green-lc
-                                                              :box 1))))
-     `(magit-log-head-label-default ((,class (:background ,solarized-hl :box 1))))
-     `(magit-log-head-label-local ((,class (:background ,blue-lc :foreground ,blue-hc :box 1))))
-     `(magit-log-head-label-patches ((,class (:background ,red-lc :foreground ,red-hc :box 1))))
-     `(magit-log-head-label-remote ((,class (:background ,green-lc :foreground ,green-hc :box 1))))
-     `(magit-log-head-label-tags ((,class (:background ,yellow-lc :foreground ,yellow-hc :box 1))))
-     `(magit-log-sha1 ((,class (:foreground ,yellow))))
+       ;; eshell
+       (eshell-prompt  (:foreground yellow :weight bold))
+       (eshell-ls-archive  (:foreground red :weight bold))
+       (eshell-ls-backup  (:inherit font-lock-comment))
+       (eshell-ls-clutter  (:inherit font-lock-comment))
+       (eshell-ls-directory  (:foreground blue :weight bold))
+       (eshell-ls-executable  (:foreground red :weight bold))
+       (eshell-ls-unreadable  (:foreground base00))
+       (eshell-ls-missing  (:inherit font-lock-warning))
+       (eshell-ls-product  (:inherit font-lock-doc))
+       (eshell-ls-special  (:foreground yellow :weight bold))
+       (eshell-ls-symlink  (:foreground cyan :weight bold))
 
-     ;; message-mode
-     `(message-cited-text ((,class (:foreground ,solarized-comments))))
-     `(message-header-name ((,class (:foreground ,green))))
-     `(message-header-other ((,class (:foreground ,green))))
-     `(message-header-to ((,class (:foreground ,yellow :weight bold))))
-     `(message-header-cc ((,class (:foreground ,orange :weight bold))))
-     `(message-header-newsgroups ((,class (:foreground ,yellow :weight bold))))
-     `(message-header-subject ((,class (:foreground ,orange))))
-     `(message-header-xheader ((,class (:foreground ,cyan))))
-     `(message-mml ((,class (:foreground ,yellow :weight bold))))
-     `(message-separator ((,class (:foreground ,solarized-comments :slant italic))))
+       ;; flymake
+       (flymake-errline
+        (:foreground red-hc :background red-lc :weight bold :underline t))
+       (flymake-infoline  (:foreground green-hc :background green-lc))
+       (flymake-warnline
+        (:foreground yellow-hc :background yellow-lc :weight bold :underline t))
 
-     ;; mew
-     `(mew-face-header-subject ((,class (:foreground ,orange))))
-     `(mew-face-header-from ((,class (:foreground ,yellow))))
-     `(mew-face-header-date ((,class (:foreground ,green))))
-     `(mew-face-header-to ((,class (:foreground ,red))))
-     `(mew-face-header-key ((,class (:foreground ,green))))
-     `(mew-face-header-private ((,class (:foreground ,green))))
-     `(mew-face-header-important ((,class (:foreground ,blue))))
-     `(mew-face-header-marginal ((,class (:foreground ,solarized-fg :weight bold))))
-     `(mew-face-header-warning ((,class (:foreground ,red))))
-     `(mew-face-header-xmew ((,class (:foreground ,green))))
-     `(mew-face-header-xmew-bad ((,class (:foreground ,red))))
-     `(mew-face-body-url ((,class (:foreground ,orange))))
-     `(mew-face-body-comment ((,class (:foreground ,solarized-fg :slant italic))))
-     `(mew-face-body-cite1 ((,class (:foreground ,green))))
-     `(mew-face-body-cite2 ((,class (:foreground ,blue))))
-     `(mew-face-body-cite3 ((,class (:foreground ,orange))))
-     `(mew-face-body-cite4 ((,class (:foreground ,yellow))))
-     `(mew-face-body-cite5 ((,class (:foreground ,red))))
-     `(mew-face-mark-review ((,class (:foreground ,blue))))
-     `(mew-face-mark-escape ((,class (:foreground ,green))))
-     `(mew-face-mark-delete ((,class (:foreground ,red))))
-     `(mew-face-mark-unlink ((,class (:foreground ,yellow))))
-     `(mew-face-mark-refile ((,class (:foreground ,green))))
-     `(mew-face-mark-unread ((,class (:foreground ,red))))
-     `(mew-face-eof-message ((,class (:foreground ,green))))
-     `(mew-face-eof-part ((,class (:foreground ,yellow))))
+       ;; flyspell
+       (flyspell-duplicate  (:foreground yellow :weight bold :underline t))
+       (flyspell-incorrect  (:foreground red :weight bold :underline t))
 
-     ;; mingus
-     `(mingus-directory-face ((,class (:foreground ,blue))))
-     `(mingus-pausing-face ((,class (:foreground ,magenta))))
-     `(mingus-playing-face ((,class (:foreground ,cyan))))
-     `(mingus-playlist-face ((,class (:foreground ,cyan ))))
-     `(mingus-song-file-face ((,class (:foreground ,yellow))))
-     `(mingus-stopped-face ((,class (:foreground ,red))))
+       ;; erc
+       (erc-action-face  (:inherit erc-default-face))
+       (erc-bold-face  (:weight bold))
+       (erc-current-nick-face  (:foreground blue :weight bold))
+       (erc-dangerous-host-face  (:inherit font-lock-warning))
+       (erc-default-face  (:foreground base00))
+       (erc-direct-msg-face  (:inherit erc-default))
+       (erc-error-face  (:inherit font-lock-warning))
+       (erc-fool-face  (:inherit erc-default))
+       (erc-highlight-face  (:inherit hover-highlight))
+       (erc-input-face  (:foreground yellow))
+       (erc-keyword-face  (:foreground blue :weight bold))
+       (erc-nick-default-face  (:foreground yellow :weight bold))
+       (erc-my-nick-face  (:foreground red :weight bold))
+       (erc-nick-msg-face  (:inherit erc-default))
+       (erc-notice-face  (:foreground green))
+       (erc-pal-face  (:foreground orange :weight bold))
+       (erc-prompt-face  (:foreground orange :background base3 :weight bold))
+       (erc-timestamp-face  (:foreground green))
+       (erc-underline-face  (:underline t))
 
-     ;; moccur
-     `(moccur-current-line-face ((,class (:underline t))))
-     `(moccur-edit-done-face ((,class
-                               (:foreground ,solarized-comments
-                                            :background ,solarized-bg
-                                            :slant italic))))
-     `(moccur-edit-face
-       ((,class (:background ,yellow :foreground ,solarized-bg))))
-     `(moccur-edit-file-face ((,class (:background ,solarized-hl))))
-     `(moccur-edit-reject-face ((,class (:foreground ,red))))
-     `(moccur-face ((,class (:background ,solarized-hl :foreground ,solarized-emph
-                                         :weight bold))))
+       ;; gnus
+       (gnus-group-mail-1-face  (:weight bold :inherit gnus-group-mail-1-empty))
+       (gnus-group-mail-1-empty-face  (:inherit gnus-group-news-1-empty))
+       (gnus-group-mail-2-face  (:weight bold :inherit gnus-group-mail-2-empty))
+       (gnus-group-mail-2-empty-face  (:inherit gnus-group-news-2-empty))
+       (gnus-group-mail-3-face  (:weight bold :inherit gnus-group-mail-3-empty))
+       (gnus-group-mail-3-empty-face  (:inherit gnus-group-news-3-empty))
+       (gnus-group-mail-4-face  (:weight bold :inherit gnus-group-mail-4-empty))
+       (gnus-group-mail-4-empty-face  (:inherit gnus-group-news-4-empty))
+       (gnus-group-mail-5-face  (:weight bold :inherit gnus-group-mail-5-empty))
+       (gnus-group-mail-5-empty-face  (:inherit gnus-group-news-5-empty))
+       (gnus-group-mail-6-face  (:weight bold :inherit gnus-group-mail-6-empty))
+       (gnus-group-mail-6-empty-face  (:inherit gnus-group-news-6-empty))
+       (gnus-group-mail-low-face  (:weight bold :inherit gnus-group-mail-low-empty))
+       (gnus-group-mail-low-empty-face  (:inherit gnus-group-news-low-empty))
+       (gnus-group-news-1-face  (:weight bold :inherit gnus-group-news-1-empty))
+       (gnus-group-news-2-face  (:weight bold :inherit gnus-group-news-2-empty))
+       (gnus-group-news-3-face  (:weight bold :inherit gnus-group-news-3-empty))
+       (gnus-group-news-4-face  (:weight bold :inherit gnus-group-news-4-empty))
+       (gnus-group-news-5-face  (:weight bold :inherit gnus-group-news-5-empty))
+       (gnus-group-news-6-face  (:weight bold :inherit gnus-group-news-6-empty))
+       (gnus-group-news-low-face  (:weight bold :inherit gnus-group-news-low-empty))
+       (gnus-header-content-face  (:inherit message-header-other))
+       (gnus-header-from-face  (:inherit message-header-from))
+       (gnus-header-name-face  (:inherit message-header-name))
+       (gnus-header-newsgroups-face  (:inherit message-header-other))
+       (gnus-header-subject-face  (:inherit message-header-subject))
+       (gnus-summary-cancelled-face  (:foreground orange))
+       (gnus-summary-high-ancient-face  (:foreground blue))
+       (gnus-summary-high-read-face  (:foreground green :weight bold))
+       (gnus-summary-high-ticked-face  (:foreground orange :weight bold))
+       (gnus-summary-high-unread-face  (:foreground base00 :weight bold))
+       (gnus-summary-low-ancient-face  (:foreground blue))
+       (gnus-summary-low-read-face  (:foreground green))
+       (gnus-summary-low-ticked-face  (:foreground orange :weight bold))
+       (gnus-summary-low-unread-face  (:foreground base00))
+       (gnus-summary-normal-ancient-face  (:foreground blue))
+       (gnus-summary-normal-read-face  (:foreground green))
+       (gnus-summary-normal-ticked-face  (:foreground orange :weight bold))
+       (gnus-summary-normal-unread-face  (:foreground base00))
+       (gnus-summary-selected-face  (:foreground yellow :weight bold))
+       (gnus-cite-1-face  (:foreground blue))
+       (gnus-cite-10-face  (:foreground yellow))
+       (gnus-cite-11-face  (:foreground yellow))
+       (gnus-cite-2-face  (:foreground blue))
+       (gnus-cite-3-face  (:foreground blue))
+       (gnus-cite-4-face  (:foreground green))
+       (gnus-cite-5-face  (:foreground green))
+       (gnus-cite-6-face  (:foreground green))
+       (gnus-cite-7-face  (:foreground red))
+       (gnus-cite-8-face  (:foreground red))
+       (gnus-cite-9-face  (:foreground red))
+       (gnus-group-news-1-empty-face  (:foreground yellow))
+       (gnus-group-news-2-empty-face  (:foreground green))
+       (gnus-group-news-3-empty-face  (:foreground green))
+       (gnus-group-news-4-empty-face  (:foreground blue))
+       (gnus-group-news-5-empty-face  (:foreground blue))
+       (gnus-group-news-6-empty-face  (:foreground base3))
+       (gnus-group-news-low-empty-face  (:foreground base3))
+       (gnus-signature-face  (:foreground yellow))
+       (gnus-x-face  (:background base00 :foreground base3))
 
-     ;; mu4e
-     `(mu4e-cited-1-face ((,class (:foreground ,green :slant italic :weight normal))))
-     `(mu4e-cited-2-face ((,class (:foreground ,blue :slant italic :weight normal))))
-     `(mu4e-cited-3-face ((,class (:foreground ,orange :slant italic :weight normal))))
-     `(mu4e-cited-4-face ((,class (:foreground ,yellow :slant italic :weight normal))))
-     `(mu4e-cited-5-face ((,class (:foreground ,cyan :slant italic :weight normal))))
-     `(mu4e-cited-6-face ((,class (:foreground ,green :slant italic :weight normal))))
-     `(mu4e-cited-7-face ((,class (:foreground ,blue :slant italic :weight normal))))
-     `(mu4e-flagged-face ((,class (:foreground ,magenta :weight bold))))
-     `(mu4e-view-url-number-face ((,class (:foreground ,orange :weight bold))))
-     `(mu4e-warning-face ((,class (:foreground ,red :slant normal :weight bold))))
+       ;; helm (these probably needs tweaking)
+       (helm-apt-deinstalled  (:foreground base1))
+       (helm-apt-installed  (:foreground green))
+       (helm-bookmark-directory  (:inherit helm-ff-directory))
+       (helm-bookmark-file  (:foreground base00))
+       (helm-bookmark-gnus  (:foreground cyan))
+       (helm-bookmark-info  (:foreground green))
+       (helm-bookmark-man  (:foreground violet))
+       (helm-bookmark-w3m  (:foreground yellow))
+       (helm-bookmarks-su  (:foreground orange))
+       (helm-buffer-not-saved  (:foreground orange))
+       (helm-buffer-saved-out  (:foreground red :background base3
+                                            :inverse-video t))
+       (helm-buffer-size  (:foreground base1))
+       (helm-candidate-number  (:background base2 :foreground base01
+                                            :bold t))
+       (helm-ff-directory  (:background base3  :foreground blue))
+       (helm-ff-executable  (:foreground green))
+       (helm-ff-file  (:background base3 :foreground base00))
+       (helm-ff-invalid-symlink  (:background base3 :foreground orange
+                                              :slant italic))
+       (helm-ff-prefix  (:background yellow :foreground base3))
+       (helm-ff-symlink  (:foreground cyan))
+       (helm-grep-file  (:foreground cyan :underline t))
+       (helm-grep-finish  (:foreground green))
+       (helm-grep-lineno  (:foreground orange))
+       (helm-grep-match  (:inherit match))
+       (helm-grep-running  (:foreground red))
+       (helm-header  (:inherit header-line))
+       (helm-lisp-completion-info  (:foreground base00))
+       (helm-lisp-show-completion  (:foreground yellow  :background base2
+                                                :bold t))
+       (helm-M-x-key  (:foreground orange :underline t))
+       (helm-match  (:inherit match))
+       (helm-selection  (:background base2 :underline t))
+       (helm-selection-line  (:background base2 :foreground base01
+                                          :underline nil))
+       (helm-separator  (:foreground red))
+       (helm-source-header  (:background blue-lc :foreground base3
+                                         :underline nil))
+       (helm-time-zone-current  (:foreground green))
+       (helm-time-zone-home  (:foreground red))
+       (helm-visible-mark  (:background base3 :foreground magenta :bold t))
 
-     ;; mumamo
-     `(mumamo-background-chunk-submode1 ((,class (:background ,solarized-hl))))
+       ;; hi-lock-mode
+       (hi-yellow  (:foreground yellow-lc :background yellow-hc))
+       (hi-pink  (:foreground magenta-lc :background magenta-hc))
+       (hi-green  (:foreground green-lc :background green-hc))
+       (hi-blue  (:foreground blue-lc :background blue-hc))
+       (hi-black-b  (:foreground base01 :background base3 :weight bold))
+       (hi-blue-b  (:foreground blue-lc :weight bold))
+       (hi-green-b  (:foreground green-lc :weight bold))
+       (hi-red-b  (:foreground red :weight bold))
+       (hi-black-hb  (:foreground base01 :background base3 :weight bold))
 
-     ;; nav
-     `(nav-face-heading ((,class (:foreground ,yellow))))
-     `(nav-face-button-num ((,class (:foreground ,cyan))))
-     `(nav-face-dir ((,class (:foreground ,green))))
-     `(nav-face-hdir ((,class (:foreground ,red))))
-     `(nav-face-file ((,class (:foreground ,solarized-fg))))
-     `(nav-face-hfile ((,class (:foreground ,red))))
+       ;; highlight-changes
+       (highlight-changes  (:foreground orange))
+       (highlight-changes-delete  (:foreground red :underline t))
 
-     ;; nav-flash
-     `(nav-flash-face ((,class (:foreground ,orange :background ,solarized-hl))))
+       ;; hl-line-mode
+       (hl-line  (:background base2))
+       (hl-line-face  (:background base2))
 
-     ;; org-mode
-     `(org-agenda-structure
-       ((,class (:inherit font-lock-comment-face :foreground ,magenta :inverse-video t))))
-     `(org-agenda-date
-       ((,class (:foreground ,solarized-fg :background ,solarized-hl :weight bold
-                             :box (:line-width 4 :color ,solarized-hl) ))) t)
-     `(org-agenda-date-weekend ((,class (:inherit org-agenda-date :slant italic))) t)
-     `(org-agenda-date-today
-       ((,class (:inherit org-agenda-date :slant italic underline: t))) t)
-     `(org-agenda-done ((,class (:foreground ,green))) t)
-     `(org-archived ((,class (:foreground ,solarized-comments :weight normal))))
-     `(org-block ((,class (:foreground ,solarized-comments))))
-     `(org-block-begin-line ((,class (:foreground ,solarized-comments :slant italic))))
-     `(org-checkbox ((,class (:background ,solarized-bg :foreground ,solarized-fg
-                                          :box (:line-width 1 :style released-button)))))
-     `(org-code ((,class (:foreground ,solarized-comments))))
-     `(org-date ((,class (:foreground ,blue :underline t))))
-     `(org-done ((,class (:weight bold :foreground ,green))))
-     `(org-ellipsis ((,class (:foreground ,solarized-comments))))
-     `(org-formula ((,class (:foreground ,yellow))))
-     `(org-headline-done ((,class (:foreground ,green))))
-     `(org-hide ((,class (:foreground ,solarized-bg))))
-     `(org-level-1 ((,class (:foreground ,orange))))
-     `(org-level-2 ((,class (:foreground ,green))))
-     `(org-level-3 ((,class (:foreground ,blue))))
-     `(org-level-4 ((,class (:foreground ,yellow))))
-     `(org-level-5 ((,class (:foreground ,cyan))))
-     `(org-level-6 ((,class (:foreground ,green))))
-     `(org-level-7 ((,class (:foreground ,red))))
-     `(org-level-8 ((,class (:foreground ,blue))))
-     `(org-link ((,class (:foreground ,yellow :underline t))))
-     `(org-sexp-date ((,class (:foreground ,violet))))
-     `(org-scheduled ((,class (:foreground ,green))))
-     `(org-scheduled-previously ((,class (:foreground ,yellow))))
-     `(org-scheduled-today ((,class (:foreground ,blue :weight bold))))
-     `(org-special-keyword ((,class (:foreground ,solarized-comments :weight bold))))
-     `(org-table ((,class (:foreground ,green))))
-     `(org-tag ((,class (:weight bold))))
-     `(org-time-grid ((,class (:foreground ,cyan))))
-     `(org-todo ((,class (:foreground ,red :weight bold))))
-     `(org-upcoming-deadline ((,class (:foreground ,yellow ))))
-     `(org-warning ((,class (:foreground ,orange :weight bold :underline t))))
-     ;; org-habit (clear=blue, ready=green, alert=yellow, overdue=red. future=lower contrast)
-     `(org-habit-clear-face ((,class (:background ,blue-lc :foreground ,blue-hc))))
-     `(org-habit-clear-future-face ((,class (:background ,blue-lc))))
-     `(org-habit-ready-face ((,class (:background ,green-lc :foreground ,green))))
-     `(org-habit-ready-future-face ((,class (:background ,green-lc))))
-     `(org-habit-alert-face ((,class (:background ,yellow :foreground ,yellow-lc))))
-     `(org-habit-alert-future-face ((,class (:background ,yellow-lc))))
-     `(org-habit-overdue-face ((,class (:background ,red :foreground ,red-lc))))
-     `(org-habit-overdue-future-face ((,class (:background ,red-lc))))
-     ;; latest additions
-     `(org-agenda-dimmed-todo-face ((,class (:foreground ,solarized-comments))))
-     `(org-agenda-restriction-lock ((,class (:background ,yellow))))
-     `(org-clock-overlay ((,class (:background ,yellow))))
-     `(org-column ((,class (:background ,solarized-hl :strike-through nil
-                                        :underline nil :slant normal :weight normal))))
-     `(org-column-title ((,class (:background ,solarized-hl :underline t :weight bold))))
-     `(org-date-selected ((,class (:foreground ,red :inverse-video t))))
-     `(org-document-info ((,class (:foreground ,solarized-fg))))
-     `(org-document-title ((,class (:foreground ,solarized-emph  :weight bold :height 1.44))))
-     `(org-drawer ((,class (:foreground ,cyan))))
-     `(org-footnote ((,class (:foreground ,magenta :underline t))))
-     `(org-latex-and-export-specials ((,class (:foreground ,orange))))
-     `(org-mode-line-clock-overrun ((,class (:inherit modeline :background ,red))))
+       ;; ido-mode
+       (ido-first-match  (:foreground green :weight bold))
+       (ido-only-match  (:foreground base3 :background green :weight bold))
+       (ido-subdir  (:foreground blue))
+       (ido-incomplete-regexp  (:foreground red :weight bold ))
+       (ido-indicator  (:background red :foreground base3 :width condensed))
+       (ido-virtual  (:foreground cyan))
 
-     ;; outline
-     `(outline-8 ((,class (:inherit default))))
-     `(outline-7 ((,class (:inherit outline-8 :height 1.0))))
-     `(outline-6 ((,class (:inherit outline-7 :height 1.0))))
-     `(outline-5 ((,class (:inherit outline-6 :height 1.0))))
-     `(outline-4 ((,class (:inherit outline-5 :height 1.0))))
-     `(outline-3 ((,class (:inherit outline-4 :height 1.0))))
-     `(outline-2 ((,class (:inherit outline-3 :height 1.0))))
-     `(outline-1 ((,class (:inherit outline-2 :height 1.0))))
+       ;; linum-mode
+       (linum  (:foreground base00 :background base3))
 
-     ;; pretty-mode
-     `(pretty-mode-symbol-face  ((,class (:foreground ,green))))
+       ;; magit
+       (magit-section-title  (:foreground yellow :weight bold))
+       (magit-branch  (:foreground orange :weight bold))
+       (magit-item-highlight  (:background base2))
+       (magit-log-graph  (:foreground base1))
+       (magit-log-head-label-bisect-bad  (:background red-hc :foreground red-lc :box (:line-width 1)))
+       (magit-log-head-label-bisect-good  (:background green-hc :foreground green-lc
+                                                       :box (:line-width 1)))
+       (magit-log-head-label-default  (:background base2 :box (:line-width 1)))
+       (magit-log-head-label-local  (:background blue-lc :foreground blue-hc :box (:line-width 1)))
+       (magit-log-head-label-patches  (:background red-lc :foreground red-hc :box (:line-width 1)))
+       (magit-log-head-label-remote  (:background green-lc :foreground green-hc :box (:line-width 1)))
+       (magit-log-head-label-tags  (:background yellow-lc :foreground yellow-hc :box (:line-width 1)))
+       (magit-log-sha1  (:foreground yellow))
 
-     ;; rainbow-delimiters
-     `(rainbow-delimiters-depth-1-face ((,class (:foreground ,cyan))))
-     `(rainbow-delimiters-depth-2-face ((,class (:foreground ,yellow))))
-     `(rainbow-delimiters-depth-3-face ((,class (:foreground ,blue))))
-     `(rainbow-delimiters-depth-4-face ((,class (:foreground ,orange))))
-     `(rainbow-delimiters-depth-5-face ((,class (:foreground ,green))))
-     `(rainbow-delimiters-depth-6-face ((,class (:foreground ,yellow))))
-     `(rainbow-delimiters-depth-7-face ((,class (:foreground ,blue))))
-     `(rainbow-delimiters-depth-8-face ((,class (:foreground ,orange))))
-     `(rainbow-delimiters-depth-9-face ((,class (:foreground ,green))))
-     `(rainbow-delimiters-depth-10-face ((,class (:foreground ,yellow))))
-     `(rainbow-delimiters-depth-11-face ((,class (:foreground ,blue))))
-     `(rainbow-delimiters-depth-12-face ((,class (:foreground ,orange))))
-     `(rainbow-delimiters-unmatched-face
-       ((,class (:foreground ,solarized-fg :background ,solarized-bg :inverse-video t))))
+       ;; message-mode
+       (message-cited-text  (:foreground base1))
+       (message-header-name  (:foreground green))
+       (message-header-other  (:foreground green))
+       (message-header-to  (:foreground yellow :weight bold))
+       (message-header-cc  (:foreground orange :weight bold))
+       (message-header-newsgroups  (:foreground yellow :weight bold))
+       (message-header-subject  (:foreground orange))
+       (message-header-xheader  (:foreground cyan))
+       (message-mml  (:foreground yellow :weight bold))
+       (message-separator  (:foreground base1 :slant italic))
 
-     ;; rst-mode
-     `(rst-level-1-face ((,class (:background ,yellow   :foreground ,solarized-bg))))
-     `(rst-level-2-face ((,class (:background ,cyan    :foreground ,solarized-bg))))
-     `(rst-level-3-face ((,class (:background ,blue    :foreground ,solarized-bg))))
-     `(rst-level-4-face ((,class (:background ,violet  :foreground ,solarized-bg))))
-     `(rst-level-5-face ((,class (:background ,magenta :foreground ,solarized-bg))))
-     `(rst-level-6-face ((,class (:background ,red     :foreground ,solarized-bg))))
+       ;; mew
+       (mew-face-header-subject  (:foreground orange))
+       (mew-face-header-from  (:foreground yellow))
+       (mew-face-header-date  (:foreground green))
+       (mew-face-header-to  (:foreground red))
+       (mew-face-header-key  (:foreground green))
+       (mew-face-header-private  (:foreground green))
+       (mew-face-header-important  (:foreground blue))
+       (mew-face-header-marginal  (:foreground base00 :weight bold))
+       (mew-face-header-warning  (:foreground red))
+       (mew-face-header-xmew  (:foreground green))
+       (mew-face-header-xmew-bad  (:foreground red))
+       (mew-face-body-url  (:foreground orange))
+       (mew-face-body-comment  (:foreground base00 :slant italic))
+       (mew-face-body-cite1  (:foreground green))
+       (mew-face-body-cite2  (:foreground blue))
+       (mew-face-body-cite3  (:foreground orange))
+       (mew-face-body-cite4  (:foreground yellow))
+       (mew-face-body-cite5  (:foreground red))
+       (mew-face-mark-review  (:foreground blue))
+       (mew-face-mark-escape  (:foreground green))
+       (mew-face-mark-delete  (:foreground red))
+       (mew-face-mark-unlink  (:foreground yellow))
+       (mew-face-mark-refile  (:foreground green))
+       (mew-face-mark-unread  (:foreground red))
+       (mew-face-eof-message  (:foreground green))
+       (mew-face-eof-part  (:foreground yellow))
 
-     ;; rpm-mode
-     `(rpm-spec-dir-face ((,class (:foreground ,green))))
-     `(rpm-spec-doc-face ((,class (:foreground ,green))))
-     `(rpm-spec-ghost-face ((,class (:foreground ,red))))
-     `(rpm-spec-macro-face ((,class (:foreground ,yellow))))
-     `(rpm-spec-obsolete-tag-face ((,class (:foreground ,red))))
-     `(rpm-spec-package-face ((,class (:foreground ,red))))
-     `(rpm-spec-section-face ((,class (:foreground ,yellow))))
-     `(rpm-spec-tag-face ((,class (:foreground ,blue))))
-     `(rpm-spec-var-face ((,class (:foreground ,red))))
+       ;; mingus
+       (mingus-directory-face  (:foreground blue))
+       (mingus-pausing-face  (:foreground magenta))
+       (mingus-playing-face  (:foreground cyan))
+       (mingus-playlist-face  (:foreground cyan ))
+       (mingus-song-file-face  (:foreground yellow))
+       (mingus-stopped-face  (:foreground red))
 
-     ;; sh-mode
-     `(sh-quoted-exec ((,class (:foreground ,violet :weight bold))))
-     `(sh-escaped-newline ((,class (:foreground ,yellow :weight bold))))
-     `(sh-heredoc ((,class (:foreground ,yellow :weight bold))))
+       ;; moccur
+       (moccur-current-line-face  (:underline t))
+       (moccur-edit-done-face
+        (:foreground base1
+                     :background base3
+                     :slant italic))
+       (moccur-edit-face
+        (:background yellow :foreground base3))
+       (moccur-edit-file-face  (:background base2))
+       (moccur-edit-reject-face  (:foreground red))
+       (moccur-face  (:background base2 :foreground base01
+                                  :weight bold))
 
-     ;; show-paren
-     `(show-paren-match
-       ((,class (:foreground ,cyan :background ,solarized-bg :weight normal :inverse-video t))))
-     `(show-paren-mismatch
-       ((,class (:foreground ,red :background ,solarized-bg :weight normal :inverse-video t))))
+       ;; mu4e
+       (mu4e-cited-1-face  (:foreground green :slant italic :weight normal))
+       (mu4e-cited-2-face  (:foreground blue :slant italic :weight normal))
+       (mu4e-cited-3-face  (:foreground orange :slant italic :weight normal))
+       (mu4e-cited-4-face  (:foreground yellow :slant italic :weight normal))
+       (mu4e-cited-5-face  (:foreground cyan :slant italic :weight normal))
+       (mu4e-cited-6-face  (:foreground green :slant italic :weight normal))
+       (mu4e-cited-7-face  (:foreground blue :slant italic :weight normal))
+       (mu4e-flagged-face  (:foreground magenta :weight bold))
+       (mu4e-view-url-number-face  (:foreground orange :weight bold))
+       (mu4e-warning-face  (:foreground red :slant normal :weight bold))
 
-     ;; mic-paren
-     `(paren-face-match
-       ((,class (:foreground ,cyan :background ,solarized-bg :weight normal :inverse-video t))))
-     `(paren-face-mismatch
-       ((,class (:foreground ,red :background ,solarized-bg :weight normal :inverse-video t))))
-     `(paren-face-no-match
-       ((,class (:foreground ,red :background ,solarized-bg :weight normal :inverse-video t))))
+       ;; mumamo
+       (mumamo-background-chunk-submode1  (:background base2))
 
-     ;; SLIME
-     `(slime-repl-inputed-output-face ((,class (:foreground ,red))))
+       ;; nav
+       (nav-face-heading  (:foreground yellow))
+       (nav-face-button-num  (:foreground cyan))
+       (nav-face-dir  (:foreground green))
+       (nav-face-hdir  (:foreground red))
+       (nav-face-file  (:foreground base00))
+       (nav-face-hfile  (:foreground red))
 
-     ;; speedbar
-     `(speedbar-button-face ((,class (:inherit variable-pitch :foreground ,solarized-comments))))
-     `(speedbar-directory-face ((,class (:inherit variable-pitch :foreground ,blue))))
-     `(speedbar-file-face ((,class (:inherit variable-pitch :foreground ,solarized-fg))))
-     `(speedbar-highlight-face ((,class (:inherit variable-pitch :background ,solarized-hl))))
-     `(speedbar-selected-face ((,class (:inherit variable-pitch :foreground ,yellow :underline t))))
-     `(speedbar-separator-face ((,class (:inherit variable-pitch
-                                                  :background ,blue :foreground ,solarized-bg
-                                                  :overline ,cyan-lc))))
-     `(speedbar-tag-face ((,class (:inherit variable-pitch :foreground ,green))))
+       ;; nav-flash
+       (nav-flash-face  (:foreground orange :background base2))
 
-     ;; sunrise commander headings
-     `(sr-active-path-face ((,class (:background ,blue :foreground ,solarized-bg
-                                                 :height 100  :weight bold))))
-     `(sr-editing-path-face ((,class (:background ,yellow :foreground ,solarized-bg
-                                                  :weight bold :height 100))))
-     `(sr-highlight-path-face ((,class (:background ,green :foreground ,solarized-bg
-                                                    :weight bold :height 100))))
-     `(sr-passive-path-face ((,class (:background ,solarized-comments :foreground ,solarized-bg
-                                                  :weight bold :height 100))))
-     ;; sunrise commander marked
-     `(sr-marked-dir-face ((,class (:inherit dired-marked))))
-     `(sr-marked-file-face ((,class (:inherit dired-marked))))
-     `(sr-alt-marked-dir-face ((,class (:background ,magenta :foreground ,solarized-bg
-                                                    :weight bold))))
-     `(sr-alt-marked-file-face ((,class (:background ,magenta :foreground ,solarized-bg
-                                                     :weight bold))))
-     ;; sunrise commander fstat
-     `(sr-directory-face ((,class (:inherit dired-directory :weight normal))))
-     `(sr-symlink-directory-face ((,class (:inherit dired-directory :slant italic :weight normal))))
-     `(sr-symlink-face ((,class (:inherit dired-symlink :slant italic :weight normal))))
-     `(sr-broken-link-face ((,class (:inherit dired-warning :slant italic :weight normal))))
-     ;; sunrise commander file types
-     `(sr-compressed-face ((,class (:foreground ,solarized-fg))))
-     `(sr-encrypted-face ((,class (:foreground ,solarized-fg))))
-     `(sr-log-face ((,class (:foreground ,solarized-fg))))
-     `(sr-packaged-face ((,class (:foreground ,solarized-fg))))
-     `(sr-html-face ((,class (:foreground ,solarized-fg))))
-     `(sr-xml-face ((,class (:foreground ,solarized-fg))))
-     ;; sunrise commander misc
-     `(sr-clex-hotchar-face ((,class (:background ,red  :foreground ,solarized-bg :weight bold))))
+       ;; org-mode
+       (org-agenda-structure
+        (:inherit font-lock-comment-face :foreground magenta :inverse-video t))
+       (org-agenda-date
+        (:foreground base00 :background base2 :weight bold
+                     :box (:line-width 4 :color base2)))
+       (org-agenda-date-weekend  (:inherit org-agenda-date :slant italic))
+       (org-agenda-date-today
+        (:inherit org-agenda-date :slant italic underline: t))
+       (org-agenda-done  (:foreground green))
+       (org-archived  (:foreground base1 :weight normal))
+       (org-block  (:foreground base1))
+       (org-block-begin-line  (:foreground base1 :slant italic))
+       (org-checkbox  (:background base3 :foreground base00
+                                   :box (:line-width 1 :style released-button)))
+       (org-code  (:foreground base1))
+       (org-date  (:foreground blue :underline t))
+       (org-done  (:weight bold :foreground green))
+       (org-ellipsis  (:foreground base1))
+       (org-formula  (:foreground yellow))
+       (org-headline-done  (:foreground green))
+       (org-hide  (:foreground base3))
+       (org-level-1  (:foreground orange))
+       (org-level-2  (:foreground green))
+       (org-level-3  (:foreground blue))
+       (org-level-4  (:foreground yellow))
+       (org-level-5  (:foreground cyan))
+       (org-level-6  (:foreground green))
+       (org-level-7  (:foreground red))
+       (org-level-8  (:foreground blue))
+       (org-link  (:foreground yellow :underline t))
+       (org-sexp-date  (:foreground violet))
+       (org-scheduled  (:foreground green))
+       (org-scheduled-previously  (:foreground yellow))
+       (org-scheduled-today  (:foreground blue :weight bold))
+       (org-special-keyword  (:foreground base1 :weight bold))
+       (org-table  (:foreground green))
+       (org-tag  (:weight bold))
+       (org-time-grid  (:foreground cyan))
+       (org-todo  (:foreground red :weight bold))
+       (org-upcoming-deadline  (:foreground yellow))
+       (org-warning  (:foreground orange :weight bold :underline t))
+       ;; org-habit (clear=blue ready=green alert=yellow overdue=red. future=lower contrast)
+       (org-habit-clear-face  (:background blue-lc :foreground blue-hc))
+       (org-habit-clear-future-face  (:background blue-lc))
+       (org-habit-ready-face  (:background green-lc :foreground green))
+       (org-habit-ready-future-face  (:background green-lc))
+       (org-habit-alert-face  (:background yellow :foreground yellow-lc))
+       (org-habit-alert-future-face  (:background yellow-lc))
+       (org-habit-overdue-face  (:background red :foreground red-lc))
+       (org-habit-overdue-future-face  (:background red-lc))
+       ;; latest additions
+       (org-agenda-dimmed-todo-face  (:foreground base1))
+       (org-agenda-restriction-lock  (:background yellow))
+       (org-clock-overlay  (:background yellow))
+       (org-column  (:background base2 :strike-through nil
+                                 :underline nil :slant normal :weight normal))
+       (org-column-title  (:background base2 :underline t :weight bold))
+       (org-date-selected  (:foreground red :inverse-video t))
+       (org-document-info  (:foreground base00))
+       (org-document-title  (:foreground base01  :weight bold :height 1.44))
+       (org-drawer  (:foreground cyan))
+       (org-footnote  (:foreground magenta :underline t))
+       (org-latex-and-export-specials  (:foreground orange))
+       (org-mode-line-clock-overrun  (:inherit modeline :background red))
 
-     ;; table
-     `(table-cell ((,class (:foreground ,solarized-fg :background ,solarized-hl))))
+       ;; outline
+       (outline-8  (:inherit default))
+       (outline-7  (:inherit outline-8 :height 1.0))
+       (outline-6  (:inherit outline-7 :height 1.0))
+       (outline-5  (:inherit outline-6 :height 1.0))
+       (outline-4  (:inherit outline-5 :height 1.0))
+       (outline-3  (:inherit outline-4 :height 1.0))
+       (outline-2  (:inherit outline-3 :height 1.0))
+       (outline-1  (:inherit outline-2 :height 1.0))
 
-     ;; tooltip. (NOTE: This setting has no effect on the os widgets for me
-     ;; zencoding uses this)
-     `(tooltip ((,class (:background ,yellow-lc :foreground ,yellow-hc
-                                     :inherit variable-pitch))))
+       ;; pretty-mode
+       (pretty-mode-symbol-face   (:foreground green))
 
-     ;; tuareg
-     `(tuareg-font-lock-governing-face ((,class (:foreground ,magenta :weight bold))))
-     `(tuareg-font-lock-multistage-face ((,class (:foreground ,blue :background ,solarized-hl :weight bold))))
-     `(tuareg-font-lock-operator-face ((,class (:foreground ,solarized-emph))))
-     `(tuareg-font-lock-error-face ((,class (:foreground ,yellow :background ,red :weight bold))))
-     `(tuareg-font-lock-interactive-output-face ((,class (:foreground ,cyan))))
-     `(tuareg-font-lock-interactive-error-face ((,class (:foreground ,red))))
+       ;; rainbow-delimiters
+       (rainbow-delimiters-depth-1-face  (:foreground cyan))
+       (rainbow-delimiters-depth-2-face  (:foreground yellow))
+       (rainbow-delimiters-depth-3-face  (:foreground blue))
+       (rainbow-delimiters-depth-4-face  (:foreground orange))
+       (rainbow-delimiters-depth-5-face  (:foreground green))
+       (rainbow-delimiters-depth-6-face  (:foreground yellow))
+       (rainbow-delimiters-depth-7-face  (:foreground blue))
+       (rainbow-delimiters-depth-8-face  (:foreground orange))
+       (rainbow-delimiters-depth-9-face  (:foreground green))
+       (rainbow-delimiters-depth-10-face  (:foreground yellow))
+       (rainbow-delimiters-depth-11-face  (:foreground blue))
+       (rainbow-delimiters-depth-12-face  (:foreground orange))
+       (rainbow-delimiters-unmatched-face
+        (:foreground base00 :background base3 :inverse-video t))
 
-     ;; undo-tree
-     `(undo-tree-visualizer-default-face
-       ((,class (:foreground ,solarized-comments :background ,solarized-bg))))
-     `(undo-tree-visualizer-current-face ((,class (:foreground ,cyan :inverse-video t))))
-     `(undo-tree-visualizer-active-branch-face
-       ((,class (:foreground ,solarized-emph :background ,solarized-bg :weight bold))))
-     `(undo-tree-visualizer-register-face ((,class (:foreground ,yellow))))
+       ;; rst-mode
+       (rst-level-1-face  (:background yellow   :foreground base3))
+       (rst-level-2-face  (:background cyan    :foreground base3))
+       (rst-level-3-face  (:background blue    :foreground base3))
+       (rst-level-4-face  (:background violet  :foreground base3))
+       (rst-level-5-face  (:background magenta :foreground base3))
+       (rst-level-6-face  (:background red     :foreground base3))
 
-     ;; volatile highlights
-     `(vhl/default-face ((,class (:background ,green-lc :foreground ,green-hc))))
+       ;; rpm-mode
+       (rpm-spec-dir-face  (:foreground green))
+       (rpm-spec-doc-face  (:foreground green))
+       (rpm-spec-ghost-face  (:foreground red))
+       (rpm-spec-macro-face  (:foreground yellow))
+       (rpm-spec-obsolete-tag-face  (:foreground red))
+       (rpm-spec-package-face  (:foreground red))
+       (rpm-spec-section-face  (:foreground yellow))
+       (rpm-spec-tag-face  (:foreground blue))
+       (rpm-spec-var-face  (:foreground red))
 
-     ;; w3m
-     `(w3m-anchor ((,class (:inherit link))))
-     `(w3m-arrived-anchor ((,class (:inherit link-visited))))
-     `(w3m-form ((,class (:background ,base03 :foreground ,solarized-fg))))
-     `(w3m-header-line-location-title ((,class (:background ,base02 :foreground ,yellow))))
-     `(w3m-header-line-location-content ((,class (:background ,base02 :foreground ,solarized-fg))))
-     `(w3m-bold ((,class (:foreground ,solarized-emph :weight bold))))
-     `(w3m-image-anchor ((,class (:background ,solarized-bg :foreground ,cyan :inherit link))))
-     `(w3m-image ((,class (:background ,solarized-bg :foreground ,cyan))))
-     `(w3m-lnum-minibuffer-prompt ((,class (:foreground ,solarized-emph))))
-     `(w3m-lnum-match ((,class (:background ,solarized-hl))))
-     `(w3m-lnum ((,class (:underline nil :bold nil :foreground ,red))))
+       ;; sh-mode
+       (sh-quoted-exec  (:foreground violet :weight bold))
+       (sh-escaped-newline  (:foreground yellow :weight bold))
+       (sh-heredoc  (:foreground yellow :weight bold))
 
-     ;; whitespace-mode
-     `(whitespace-space ((,class (:background ,solarized-bg :foreground ,yellow-lc
-                                              :inverse-video t))))
-     `(whitespace-hspace ((,class (:background ,solarized-bg :foreground ,red-lc
-                                               :inverse-video t))))
-     `(whitespace-tab ((,class (:background ,solarized-bg :foreground ,orange-lc
-                                            :inverse-video t))))
-     `(whitespace-newline ((,class (:foreground ,solarized-comments))))
-     `(whitespace-trailing ((,class (:foreground ,blue-lc :background ,solarized-bg
-                                                 :inverse-video t))))
+       ;; show-paren
+       (show-paren-match
+        (:foreground cyan :background base3 :weight normal :inverse-video t))
+       (show-paren-mismatch
+        (:foreground red :background base3 :weight normal :inverse-video t))
+
+       ;; mic-paren
+       (paren-face-match
+        (:foreground cyan :background base3 :weight normal :inverse-video t))
+       (paren-face-mismatch
+        (:foreground red :background base3 :weight normal :inverse-video t))
+       (paren-face-no-match
+        (:foreground red :background base3 :weight normal :inverse-video t))
+
+       ;; SLIME
+       (slime-repl-inputed-output-face  (:foreground red))
+
+       ;; speedbar
+       (speedbar-button-face  (:inherit variable-pitch :foreground base1))
+       (speedbar-directory-face  (:inherit variable-pitch :foreground blue))
+       (speedbar-file-face  (:inherit variable-pitch :foreground base00))
+       (speedbar-highlight-face  (:inherit variable-pitch :background base2))
+       (speedbar-selected-face  (:inherit variable-pitch :foreground yellow :underline t))
+       (speedbar-separator-face  (:inherit variable-pitch
+                                           :background blue :foreground base3
+                                           :overline (:color ecyan-lc)))
+       (speedbar-tag-face  (:inherit variable-pitch :foreground green))
+
+       ;; sunrise commander headings
+       (sr-active-path-face  (:background blue :foreground base3
+                                          :height 100  :weight bold))
+       (sr-editing-path-face  (:background yellow :foreground base3
+                                           :weight bold :height 100))
+       (sr-highlight-path-face  (:background green :foreground base3
+                                             :weight bold :height 100))
+       (sr-passive-path-face  (:background base1 :foreground base3
+                                           :weight bold :height 100))
+       ;; sunrise commander marked
+       (sr-marked-dir-face  (:inherit dired-marked))
+       (sr-marked-file-face  (:inherit dired-marked))
+       (sr-alt-marked-dir-face  (:background magenta :foreground base3
+                                             :weight bold))
+       (sr-alt-marked-file-face  (:background magenta :foreground base3
+                                              :weight bold))
+       ;; sunrise commander fstat
+       (sr-directory-face  (:inherit dired-directory :weight normal))
+       (sr-symlink-directory-face  (:inherit dired-directory :slant italic :weight normal))
+       (sr-symlink-face  (:inherit dired-symlink :slant italic :weight normal))
+       (sr-broken-link-face  (:inherit dired-warning :slant italic :weight normal))
+       ;; sunrise commander file types
+       (sr-compressed-face  (:foreground base00))
+       (sr-encrypted-face  (:foreground base00))
+       (sr-log-face  (:foreground base00))
+       (sr-packaged-face  (:foreground base00))
+       (sr-html-face  (:foreground base00))
+       (sr-xml-face  (:foreground base00))
+       ;; sunrise commander misc
+       (sr-clex-hotchar-face  (:background red  :foreground base3 :weight bold))
+
+       ;; table
+       (table-cell  (:foreground base00 :background base2))
+
+       ;; tooltip. (NOTE: This setting has no effect on the os widgets for me
+       ;; zencoding uses this)
+       (tooltip  (:background yellow-lc :foreground yellow-hc
+                              :inherit variable-pitch))
+
+       ;; tuareg
+       (tuareg-font-lock-governing-face  (:foreground magenta :weight bold))
+       (tuareg-font-lock-multistage-face  (:foreground blue :background base2 :weight bold))
+       (tuareg-font-lock-operator-face  (:foreground base01))
+       (tuareg-font-lock-error-face  (:foreground yellow :background red :weight bold))
+       (tuareg-font-lock-interactive-output-face  (:foreground cyan))
+       (tuareg-font-lock-interactive-error-face  (:foreground red))
+
+       ;; undo-tree
+       (undo-tree-visualizer-default-face
+        (:foreground base1 :background base3))
+       (undo-tree-visualizer-current-face  (:foreground cyan :inverse-video t))
+       (undo-tree-visualizer-active-branch-face
+        (:foreground base01 :background base3 :weight bold))
+       (undo-tree-visualizer-register-face  (:foreground yellow))
+
+       ;; volatile highlights
+       (vhl/default-face  (:background green-lc :foreground green-hc))
+
+       ;; w3m
+       (w3m-anchor  (:inherit link))
+       (w3m-arrived-anchor  (:inherit link-visited))
+       (w3m-form  (:background base03 :foreground base00))
+       (w3m-header-line-location-title  (:background base02 :foreground yellow))
+       (w3m-header-line-location-content  (:background base02 :foreground base00))
+       (w3m-bold  (:foreground base01 :weight bold))
+       (w3m-image-anchor  (:background base3 :foreground cyan :inherit link))
+       (w3m-image  (:background base3 :foreground cyan))
+       (w3m-lnum-minibuffer-prompt  (:foreground base01))
+       (w3m-lnum-match  (:background base2))
+       (w3m-lnum  (:underline nil :bold nil :foreground red))
+
+       ;; whitespace-mode
+       (whitespace-space  (:background base3 :foreground yellow-lc
+                                       :inverse-video t))
+       (whitespace-hspace  (:background base3 :foreground red-lc
+                                        :inverse-video t))
+       (whitespace-tab  (:background base3 :foreground orange-lc
+                                     :inverse-video t))
+       (whitespace-newline  (:foreground base1))
+       (whitespace-trailing  (:foreground blue-lc :background base3
+                                          :inverse-video t))
                                         ; removing inverse video on this
-     `(whitespace-line ((,class (:background ,solarized-bg :foreground ,magenta
-                                             :inverse-video nil))))
-     `(whitespace-space-before-tab ((,class (:background ,solarized-bg :foreground ,green-lc
-                                                         :inverse-video t))))
-     `(whitespace-indentation ((,class (:background ,solarized-bg :foreground ,magenta-lc
-                                                    :inverse-video t))))
-     `(whitespace-empty ((,class (:background ,solarized-fg :foreground ,red-lc :inverse-video t))))
-     `(whitespace-space-after-tab ((,class (:background ,solarized-bg  :foreground ,violet-lc
-                                                        :inverse-video t))))
+       (whitespace-line  (:background base3 :foreground magenta
+                                      :inverse-video nil))
+       (whitespace-space-before-tab  (:background base3 :foreground green-lc
+                                                  :inverse-video t))
+       (whitespace-indentation  (:background base3 :foreground magenta-lc
+                                             :inverse-video t))
+       (whitespace-empty  (:background base00 :foreground red-lc :inverse-video t))
+       (whitespace-space-after-tab  (:background base3  :foreground violet-lc
+                                                 :inverse-video t))
 
-     ;; wanderlust
-     `(wl-highlight-folder-few-face ((,class (:foreground ,red))))
-     `(wl-highlight-folder-many-face ((,class (:foreground ,red))))
-     `(wl-highlight-folder-path-face ((,class (:foreground ,orange))))
-     `(wl-highlight-folder-unread-face ((,class (:foreground ,blue))))
-     `(wl-highlight-folder-zero-face ((,class (:foreground ,solarized-fg))))
-     `(wl-highlight-folder-unknown-face ((,class (:foreground ,blue))))
-     `(wl-highlight-message-citation-header ((,class (:foreground ,red))))
-     `(wl-highlight-message-cited-text-1 ((,class (:foreground ,red))))
-     `(wl-highlight-message-cited-text-2 ((,class (:foreground ,green))))
-     `(wl-highlight-message-cited-text-3 ((,class (:foreground ,blue))))
-     `(wl-highlight-message-cited-text-4 ((,class (:foreground ,blue))))
-     `(wl-highlight-message-header-contents-face ((,class (:foreground ,green))))
-     `(wl-highlight-message-headers-face ((,class (:foreground ,red))))
-     `(wl-highlight-message-important-header-contents ((,class (:foreground ,green))))
-     `(wl-highlight-message-header-contents ((,class (:foreground ,green))))
-     `(wl-highlight-message-important-header-contents2 ((,class (:foreground ,green))))
-     `(wl-highlight-message-signature ((,class (:foreground ,green))))
-     `(wl-highlight-message-unimportant-header-contents ((,class (:foreground ,solarized-fg))))
-     `(wl-highlight-summary-answered-face ((,class (:foreground ,blue))))
-     `(wl-highlight-summary-disposed-face ((,class (:foreground ,solarized-fg
-                                                                :slant italic))))
-     `(wl-highlight-summary-new-face ((,class (:foreground ,blue))))
-     `(wl-highlight-summary-normal-face ((,class (:foreground ,solarized-fg))))
-     `(wl-highlight-summary-thread-top-face ((,class (:foreground ,yellow))))
-     `(wl-highlight-thread-indent-face ((,class (:foreground ,magenta))))
-     `(wl-highlight-summary-refiled-face ((,class (:foreground ,solarized-fg))))
-     `(wl-highlight-summary-displaying-face ((,class (:underline t :weight bold))))
+       ;; wanderlust
+       (wl-highlight-folder-few-face  (:foreground red))
+       (wl-highlight-folder-many-face  (:foreground red))
+       (wl-highlight-folder-path-face  (:foreground orange))
+       (wl-highlight-folder-unread-face  (:foreground blue))
+       (wl-highlight-folder-zero-face  (:foreground base00))
+       (wl-highlight-folder-unknown-face  (:foreground blue))
+       (wl-highlight-message-citation-header  (:foreground red))
+       (wl-highlight-message-cited-text-1  (:foreground red))
+       (wl-highlight-message-cited-text-2  (:foreground green))
+       (wl-highlight-message-cited-text-3  (:foreground blue))
+       (wl-highlight-message-cited-text-4  (:foreground blue))
+       (wl-highlight-message-header-contents-face  (:foreground green))
+       (wl-highlight-message-headers-face  (:foreground red))
+       (wl-highlight-message-important-header-contents  (:foreground green))
+       (wl-highlight-message-header-contents  (:foreground green))
+       (wl-highlight-message-important-header-contents2  (:foreground green))
+       (wl-highlight-message-signature  (:foreground green))
+       (wl-highlight-message-unimportant-header-contents  (:foreground base00))
+       (wl-highlight-summary-answered-face  (:foreground blue))
+       (wl-highlight-summary-disposed-face  (:foreground base00
+                                                         :slant italic))
+       (wl-highlight-summary-new-face  (:foreground blue))
+       (wl-highlight-summary-normal-face  (:foreground base00))
+       (wl-highlight-summary-thread-top-face  (:foreground yellow))
+       (wl-highlight-thread-indent-face  (:foreground magenta))
+       (wl-highlight-summary-refiled-face  (:foreground base00))
+       (wl-highlight-summary-displaying-face  (:underline t :weight bold))
 
-     ;; which-func-mode
-     `(which-func ((,class (:foreground ,green))))
+       ;; which-func-mode
+       (which-func  (:foreground green))
 
-     ;; window-number-mode
-     `(window-number-face ((,class (:foreground ,green))))
+       ;; window-number-mode
+       (window-number-face  (:foreground green))
 
-     ;; yascroll
-     `(yascroll:thumb-text-area
-       ((,class (:foreground ,solarized-comments :background ,solarized-comments))))
-     `(yascroll:thumb-fringe
-       ((,class (:foreground ,solarized-comments :background ,solarized-comments))))
+       ;; yascroll
+       (yascroll:thumb-text-area
+        (:foreground base1 :background base1))
+       (yascroll:thumb-fringe
+        (:foreground base1 :background base1))
 
-     ;; zencoding
-     `(zencoding-preview-input ((,class (:background ,solarized-hl :box ,solarized-emph)))))
+       ;; zencoding
+       (zencoding-preview-input  (:background base2 :box  (:color base01)))
+
+       ) mode))
 
 
-    (custom-theme-set-variables
-     theme-name
-     `(ansi-color-names-vector [,solarized-bg ,red ,green ,yellow
-                                             ,blue ,magenta ,cyan ,solarized-fg])
-     `(ansi-term-color-vector [unspecific ,base01 ,red ,green ,yellow ,blue ,magenta ,cyan ,base03])
-     ;; fill-column-indicator
-     `(fci-rule-color ,solarized-hl)
+    ))
 
-     ;; highlight-changes
-     `(highlight-changes-colors '(,magenta ,violet))
+(defun create-solarized-theme (variant theme-name &optional childtheme)
+  (let* ((defs (solarized-color-definitions variant))
+         (theme-vars (mapcar (lambda (def) (list (car def) (cdr def)))
+                             (cadr defs)))
+         (theme-faces (car defs)))
+    (apply 'custom-theme-set-faces theme-name theme-faces)
+    (apply 'custom-theme-set-variables theme-name theme-vars))
 
-     ;; highlight-tail
-     `(highlight-tail-colors
-       '((,solarized-hl . 0)(,green-lc . 20)(,cyan-lc . 30)(,blue-lc . 50)
-         (,yellow-lc . 60)(,orange-lc . 70)(,magenta-lc . 85)(,solarized-hl . 100))))
+
 
     ;; call chained theme function
-    (when childtheme (funcall childtheme))))
+  ;;(when childtheme (funcall childtheme)))
+)
 
 ;;;###autoload
 (when (and (boundp 'custom-theme-load-path) load-file-name)
