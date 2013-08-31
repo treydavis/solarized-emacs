@@ -59,55 +59,133 @@ Also affects linum-mode background."
   :type 'boolean
   :group 'solarized)
 
+(defconst base16-colors-solarized
+  '((scheme . "Solarized")
+    (author . "Ethan Schoonover (http://ethanschoonover.com/solarized)")
+    (base00 . "#002b36")
+    (base01 . "#073642")
+    (base02 . "#586e75")
+    (base03 . "#657b83")
+    (base04 . "#839496")
+    (base05 . "#93a1a1")
+    (base06 . "#eee8d5")
+    (base07 . "#fdf6e3")
+    (base08 . "#dc322f")
+    (base09 . "#cb4b16")
+    (base0A . "#b58900")
+    (base0B . "#859900")
+    (base0C . "#2aa198")
+    (base0D . "#268bd2")
+    (base0E . "#6c71c4")
+    (base0F . "#d33682")
+    ))
+
+(defconst base16-colors-ocean
+  '((scheme . "Ocean")
+    (author . "Chris Kempson (http://chriskempson.com)")
+    (base00 . "#2b303b")
+    (base01 . "#343d46")
+    (base02 . "#4f5b66")
+    (base03 . "#65737e")
+    (base04 . "#a7adba")
+    (base05 . "#c0c5ce")
+    (base06 . "#dfe1e8")
+    (base07 . "#eff1f5")
+    (base08 . "#bf616a")
+    (base09 . "#d08770")
+    (base0A . "#ebcb8b")
+    (base0B . "#a3be8c")
+    (base0C . "#96b5b4")
+    (base0D . "#8fa1b3")
+    (base0E . "#b48ead")
+    (base0F . "#ab7967")))
+
+(defconst base16-colors-default
+  '((scheme . "Default")
+    (author . "Chris Kempson (http://chriskempson.com)")
+    (base00 . "#151515")
+    (base01 . "#202020")
+    (base02 . "#303030")
+    (base03 . "#505050")
+    (base04 . "#b0b0b0")
+    (base05 . "#d0d0d0")
+    (base06 . "#e0e0e0")
+    (base07 . "#f5f5f5")
+    (base08 . "#ac4142")
+    (base09 . "#d28445")
+    (base0A . "#f4bf75")
+    (base0B . "#90a959")
+    (base0C . "#75b5aa")
+    (base0D . "#6a9fb5")
+    (base0E . "#aa759f")
+    (base0F . "#8f5536")))
+
+;; out = alpha * new + (1 - alpha) * old
+(defun color-blend-name (color1 color2 alpha)
+  (apply 'color-rgb-to-hex
+         (--zip-with
+          (+ (* alpha it) (* other  (- 1 alpha)))
+          (color-name-to-rgb color1)
+          (color-name-to-rgb color2))))
+
+;; (defconst base16-theme base16-colors-solarized)
+(setq-default base16-colors base16-colors-solarized)
+
+(defun base16-get-color (name)
+  (cdr (assoc name base16-colors)))
+
+(message "%s" (apply 'color-rgb-to-hex (color-name-to-rgb (base16-get-color 'base0D))))
+
+
 (defun create-solarized-theme (variant theme-name &optional childtheme)
   "Create a VARIANT of the theme named THEME-NAME.
 
 When optional argument CHILDTHEME function is supplied it's invoked to further
 customize the resulting theme."
-  (let* ((class '((class color) (min-colors 89)))
-         ;; Solarized palette
-         (base03    "#002b36")
-         (base02    "#073642")
-         ;; emphasized content
-         (base01    "#586e75")
-         ;; primary content
-         (base00    "#657b83")
-         (base0     "#839496")
-         ;; comments
-         (base1     "#93a1a1")
-         ;; background highlight light
-         (base2     "#eee8d5")
-         ;; background light
-         (base3     "#fdf6e3")
+  (let* (
+         (class '((class color) (min-colors 89)))
 
-         ;; Solarized accented colors
-         (yellow    "#b58900")
-         (orange    "#cb4b16")
-         (red       "#dc322f")
-         (magenta   "#d33682")
-         (violet    "#6c71c4")
-         (blue      "#268bd2")
-         (cyan      "#2aa198")
-         (green     "#859900")
+         (base03 (base16-get-color 'base00))
+         (base02 (base16-get-color 'base01))
+         (base01 (base16-get-color 'base02))
+         (base00 (base16-get-color 'base03))
+         (base0 (base16-get-color 'base04))
+         (base1 (base16-get-color 'base05))
+         (base2 (base16-get-color 'base06))
+         (base3 (base16-get-color 'base07))
+         (yellow  (base16-get-color 'base0A))
+         (orange  (base16-get-color 'base09))
+         (red     (base16-get-color 'base08))
+         (magenta (base16-get-color 'base0F))
+         (violet  (base16-get-color 'base0E))
+         (blue    (base16-get-color 'base0D))
+         (cyan    (base16-get-color 'base0C))
+         (green   (base16-get-color 'base0B))
 
-         ;; Darker and lighter accented colors
-         ;; Only use these in exceptional circumstances!
-         (yellow-d  "#7B6000")
-         (yellow-l  "#DEB542")
-         (orange-d  "#8B2C02")
-         (orange-l  "#F2804F")
-         (red-d     "#990A1B")
-         (red-l     "#FF6E64")
-         (magenta-d "#93115C")
-         (magenta-l "#F771AC")
-         (violet-d  "#3F4D91")
-         (violet-l  "#9EA0E5")
-         (blue-d    "#00629D")
-         (blue-l    "#69B7F0")
-         (cyan-d    "#00736F")
-         (cyan-l    "#69CABF")
-         (green-d   "#546E00")
-         (green-l   "#B4C342")
+         ;; ;; Solarized palette
+         ;; (base03    "#002b36")
+         ;; (base02    "#073642")
+         ;; ;; emphasized content
+         ;; (base01    "#586e75")
+         ;; ;; primary content
+         ;; (base00    "#657b83")
+         ;; (base0     "#839496")
+         ;; ;; comments
+         ;; (base1     "#93a1a1")
+         ;; ;; background highlight light
+         ;; (base2     "#eee8d5")
+         ;; ;; background light
+         ;; (base3     "#fdf6e3")
+
+         ;; ;; Solarized accented colors
+         ;; (yellow    "#b58900")
+         ;; (orange    "#cb4b16")
+         ;; (red       "#dc322f")
+         ;; (magenta   "#d33682")
+         ;; (violet    "#6c71c4")
+         ;; (blue      "#268bd2")
+         ;; (cyan      "#2aa198")
+         ;; (green     "#859900")
 
          ;; Light/Dark adaptive solarized colors
          (solarized-fg (if (eq variant 'light) base00 base0))
@@ -121,22 +199,25 @@ customize the resulting theme."
          (solarized-fg-hc (if (eq variant 'light) base3 base03))
          (solarized-fg-lc (if (eq variant 'light) base03 base3))
 
-         (yellow-hc (if (eq variant 'light) yellow-d yellow-l))
-         (yellow-lc (if (eq variant 'light) yellow-l yellow-d))
-         (orange-hc (if (eq variant 'light) orange-d orange-l))
-         (orange-lc (if (eq variant 'light) orange-l orange-d))
-         (red-hc (if (eq variant 'light) red-d red-l))
-         (red-lc (if (eq variant 'light) red-l red-d))
-         (magenta-hc (if (eq variant 'light) magenta-d magenta-l))
-         (magenta-lc (if (eq variant 'light) magenta-l magenta-d))
-         (violet-hc (if (eq variant 'light) violet-d violet-l))
-         (violet-lc (if (eq variant 'light) violet-l violet-d))
-         (blue-hc (if (eq variant 'light) blue-d blue-l))
-         (blue-lc (if (eq variant 'light) blue-l blue-d))
-         (cyan-hc (if (eq variant 'light) cyan-d cyan-l))
-         (cyan-lc (if (eq variant 'light) cyan-l cyan-d))
-         (green-hc (if (eq variant 'light) green-d green-l))
-         (green-lc (if (eq variant 'light) green-l green-d))
+
+         ;; Darker and lighter accented colors
+         ;; Only use these in exceptional circumstances!
+         (yellow-hc (color-darken-name (color-blend-name yellow solarized-bg 0.6) 15))
+         (yellow-lc (color-lighten-name (color-blend-name yellow solarized-bg 0.6) 15))
+         (orange-hc (color-darken-name (color-blend-name orange solarized-bg 0.6) 15))
+         (orange-lc (color-lighten-name (color-blend-name orange solarized-bg 0.6) 15))
+         (red-hc (color-darken-name (color-blend-name red solarized-bg 0.6) 15))
+         (red-lc (color-lighten-name (color-blend-name red solarized-bg 0.6) 15))
+         (magenta-hc (color-darken-name (color-blend-name magenta solarized-bg 0.6) 15))
+         (magenta-lc (color-lighten-name (color-blend-name magenta solarized-bg 0.6) 15))
+         (violet-hc (color-darken-name (color-blend-name violet solarized-bg 0.6) 15))
+         (violet-lc (color-lighten-name (color-blend-name violet solarized-bg 0.6) 15))
+         (blue-hc (color-darken-name (color-blend-name blue solarized-bg 0.6) 15))
+         (blue-lc (color-lighten-name (color-blend-name blue solarized-bg 0.6) 15))
+         (cyan-hc (color-darken-name (color-blend-name cyan solarized-bg 0.6) 15))
+         (cyan-lc (color-lighten-name (color-blend-name cyan solarized-bg 0.6) 15))
+         (green-hc (color-darken-name (color-blend-name green solarized-bg 0.6) 15))
+         (green-lc (color-lighten-name (color-blend-name green solarized-bg 0.6) 15))
 
          ;; customize based face properties
          (s-fringe-bg (if solarized-distinct-fringe-background
@@ -1151,17 +1232,17 @@ customize the resulting theme."
      `(term-color-black ((t (:foreground ,base03
                                          :background ,base02))))
      `(term-color-red ((t (:foreground ,red
-                                       :background ,red-d))))
+                                       :background ,red-hc))))
      `(term-color-green ((t (:foreground ,green
-                                         :background ,green-d))))
+                                         :background ,green-hc))))
      `(term-color-yellow ((t (:foreground ,yellow
-                                          :background ,yellow-d))))
+                                          :background ,yellow-hc))))
      `(term-color-blue ((t (:foreground ,blue
-                                        :background ,blue-d))))
+                                        :background ,blue-hc))))
      `(term-color-magenta ((t (:foreground ,magenta
-                                           :background ,magenta-d))))
+                                           :background ,magenta-hc))))
      `(term-color-cyan ((t (:foreground ,cyan
-                                        :background ,cyan-d))))
+                                        :background ,cyan-hc))))
      `(term-color-white ((t (:foreground ,base00
                                          :background ,base0))))
      '(term-default-fg-color ((t (:inherit term-color-white))))
@@ -1379,12 +1460,12 @@ customize the resulting theme."
      ;; weechat
      `(weechat-color-list
        '(unspecified ,base03 ,base02
-                     ,red-d ,red
-                     ,green-d ,green
-                     ,yellow-d ,yellow
-                     ,blue-d ,blue
-                     ,magenta-d ,magenta
-                     ,cyan-d ,cyan
+                     ,red-hc ,red
+                     ,green-hc ,green
+                     ,yellow-hc ,yellow
+                     ,blue-hc ,blue
+                     ,magenta-hc ,magenta
+                     ,cyan-hc ,cyan
                      ,base0 ,base00)))
 
     ;; call chained theme function
