@@ -120,6 +120,47 @@ Also affects linum-mode background."
     (base0E . "#aa759f")
     (base0F . "#8f5536")))
 
+(defconst base16-colors-chalk
+  '((scheme . "Chalk")
+    (author . "Chris Kempson (http://chriskempson.com)")
+    (base00 . "#151515")
+    (base01 . "#202020")
+    (base02 . "#303030")
+    (base03 . "#505050")
+    (base04 . "#b0b0b0")
+    (base05 . "#d0d0d0")
+    (base06 . "#e0e0e0")
+    (base07 . "#f5f5f5")
+    (base08 . "#fb9fb1")
+    (base09 . "#eda987")
+    (base0A . "#ddb26f")
+    (base0B . "#acc267")
+    (base0C . "#12cfc0")
+    (base0D . "#6fc2ef")
+    (base0E . "#e1a3ee")
+    (base0F . "#deaf8f")))
+
+(defconst base16-colors-tomorrow
+  '((scheme . "Tomorrow")
+   (author . "Chris Kempson (http://chriskempson.com)")
+   (base00 . "#1d1f21")
+   (base01 . "#282a2e")
+   (base02 . "#373b41")
+   (base03 . "#969896")
+   (base04 . "#b4b7b4")
+   (base05 . "#c5c8c6")
+   (base06 . "#e0e0e0")
+   (base07 . "#ffffff")
+   (base08 . "#cc6666")
+   (base09 . "#de935f")
+   (base0A . "#f0c674")
+   (base0B . "#b5bd68")
+   (base0C . "#8abeb7")
+   (base0D . "#81a2be")
+   (base0E . "#b294bb")
+   (base0F . "#a3685a")))
+
+
 ;; out = alpha * new + (1 - alpha) * old
 (defun color-blend-name (color1 color2 alpha)
   (apply 'color-rgb-to-hex
@@ -128,13 +169,17 @@ Also affects linum-mode background."
           (color-name-to-rgb color1)
           (color-name-to-rgb color2))))
 
-;; (defconst base16-theme base16-colors-solarized)
+
+;; (setq-default base16-colors base16-colors-tomorrow)
+;; (setq-default base16-colors base16-colors-ocean)
+;; (setq-default base16-colors base16-colors-default)
+;; (setq-default base16-colors base16-colors-chalk)
 (setq-default base16-colors base16-colors-solarized)
 
 (defun base16-get-color (name)
   (cdr (assoc name base16-colors)))
 
-(message "%s" (apply 'color-rgb-to-hex (color-name-to-rgb (base16-get-color 'base0D))))
+;; (message "%s" (apply 'color-rgb-to-hex (color-name-to-rgb (base16-get-color 'base0D))))
 
 
 (defun create-solarized-theme (variant theme-name &optional childtheme)
@@ -149,10 +194,20 @@ customize the resulting theme."
          (base02 (base16-get-color 'base01))
          (base01 (base16-get-color 'base02))
          (base00 (base16-get-color 'base03))
+         ;; (base00 (color-darken-name (base16-get-color 'base03) 5))
          (base0 (base16-get-color 'base04))
          (base1 (base16-get-color 'base05))
          (base2 (base16-get-color 'base06))
          (base3 (base16-get-color 'base07))
+         ;; (base3 (color-lighten-name (base16-get-color 'base07) 15 ) )
+         ;; (yellow  (color-saturate-name (base16-get-color 'base0A) 5))
+         ;; (orange  (color-saturate-name (base16-get-color 'base09) 5))
+         ;; (red     (color-saturate-name (base16-get-color 'base08) 5))
+         ;; (magenta (color-saturate-name (base16-get-color 'base0F) 5))
+         ;; (violet  (color-saturate-name (base16-get-color 'base0E) 5))
+         ;; (blue    (color-saturate-name (base16-get-color 'base0D) 5))
+         ;; (cyan    (color-saturate-name (base16-get-color 'base0C) 5))
+         ;; (green   (color-saturate-name (base16-get-color 'base0B) 5))
          (yellow  (base16-get-color 'base0A))
          (orange  (base16-get-color 'base09))
          (red     (base16-get-color 'base08))
@@ -202,22 +257,27 @@ customize the resulting theme."
 
          ;; Darker and lighter accented colors
          ;; Only use these in exceptional circumstances!
-         (yellow-hc (color-darken-name (color-blend-name yellow solarized-bg 0.6) 15))
-         (yellow-lc (color-lighten-name (color-blend-name yellow solarized-bg 0.6) 15))
-         (orange-hc (color-darken-name (color-blend-name orange solarized-bg 0.6) 15))
-         (orange-lc (color-lighten-name (color-blend-name orange solarized-bg 0.6) 15))
-         (red-hc (color-darken-name (color-blend-name red solarized-bg 0.6) 15))
-         (red-lc (color-lighten-name (color-blend-name red solarized-bg 0.6) 15))
-         (magenta-hc (color-darken-name (color-blend-name magenta solarized-bg 0.6) 15))
-         (magenta-lc (color-lighten-name (color-blend-name magenta solarized-bg 0.6) 15))
-         (violet-hc (color-darken-name (color-blend-name violet solarized-bg 0.6) 15))
-         (violet-lc (color-lighten-name (color-blend-name violet solarized-bg 0.6) 15))
-         (blue-hc (color-darken-name (color-blend-name blue solarized-bg 0.6) 15))
-         (blue-lc (color-lighten-name (color-blend-name blue solarized-bg 0.6) 15))
-         (cyan-hc (color-darken-name (color-blend-name cyan solarized-bg 0.6) 15))
-         (cyan-lc (color-lighten-name (color-blend-name cyan solarized-bg 0.6) 15))
-         (green-hc (color-darken-name (color-blend-name green solarized-bg 0.6) 15))
-         (green-lc (color-lighten-name (color-blend-name green solarized-bg 0.6) 15))
+         (blend-amount 0.85  )
+         (brightness-amount 13)
+         (saturation-amount 13)
+         (hc-blend-with base)
+         (lc-blend-with solarized-bg)
+        (yellow-hc  (color-lighten-name (color-blend-name (color-saturate-name yellow  saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (yellow-lc  (color-lighten-name (color-blend-name (color-saturate-name yellow  saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (orange-hc  (color-lighten-name (color-blend-name (color-saturate-name orange  saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (orange-lc  (color-lighten-name (color-blend-name (color-saturate-name orange  saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (red-hc     (color-lighten-name (color-blend-name (color-saturate-name red     saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (red-lc     (color-lighten-name (color-blend-name (color-saturate-name red     saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (magenta-hc (color-lighten-name (color-blend-name (color-saturate-name magenta saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (magenta-lc (color-lighten-name (color-blend-name (color-saturate-name magenta saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (violet-hc  (color-lighten-name (color-blend-name (color-saturate-name violet  saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (violet-lc  (color-lighten-name (color-blend-name (color-saturate-name violet  saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (blue-hc    (color-lighten-name (color-blend-name (color-saturate-name blue    saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (blue-lc    (color-lighten-name (color-blend-name (color-saturate-name blue    saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (cyan-hc    (color-lighten-name (color-blend-name (color-saturate-name cyan    saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (cyan-lc    (color-lighten-name (color-blend-name (color-saturate-name cyan    saturation-amount) lc-blend-with blend-amount) brightness-amount))
+        (green-hc   (color-lighten-name (color-blend-name (color-saturate-name green   saturation-amount) hc-blend-with blend-amount) (- brightness-amount)))
+        (green-lc   (color-lighten-name (color-blend-name (color-saturate-name green   saturation-amount) lc-blend-with blend-amount) brightness-amount))
 
          ;; customize based face properties
          (s-fringe-bg (if solarized-distinct-fringe-background
@@ -1470,7 +1530,6 @@ customize the resulting theme."
 
     ;; call chained theme function
     (when childtheme (funcall childtheme))))
-
 ;;;###autoload
 (when (and (boundp 'custom-theme-load-path) load-file-name)
   (add-to-list 'custom-theme-load-path
