@@ -571,6 +571,20 @@ customize the resulting theme."
      `(company-scrollbar-bg ((,class (:background ,base02 :foreground ,cyan))))
      `(company-preview ((,class (:background ,base02 :foreground ,cyan))))
      `(company-preview-common ((,class (:foreground ,base1 :underline t))))
+
+;;;;; context-coloring-mode
+     `(context-coloring-level-0-face ((t (:foreground ,base0))))
+     `(context-coloring-level-1-face ((t (:foreground ,yellow))))
+     `(context-coloring-level-2-face ((t (:foreground ,violet))))
+     `(context-coloring-level-3-face ((t (:foreground ,orange))))
+     `(context-coloring-level-4-face ((t (:foreground ,blue))))
+     `(context-coloring-level-5-face ((t (:foreground ,magenta))))
+     `(context-coloring-level-6-face ((t (:foreground ,green))))
+     `(context-coloring-level-7-face ((t (:foreground ,yellow))))
+     `(context-coloring-level-8-face ((t (:foreground ,violet))))
+     `(context-coloring-level-9-face ((t (:foreground ,orange))))
+     `(context-coloring-level-10-face ((t (:foreground ,blue))))
+
 ;;;;; column-enforce-mode
      `(column-enforce-face ((,class (:background unspecified :foreground ,magenta
                                                  :inverse-video unspecified))))
